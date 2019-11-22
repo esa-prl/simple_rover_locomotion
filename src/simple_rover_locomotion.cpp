@@ -5,7 +5,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion()
 : Node("simple_rover_locomotion")
 {
   joints_publisher_ = this->create_publisher<std_msgs::msg::String>("~/joint_commands", 10);
-  rover_velocities_subscription_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+  rover_velocities_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
   "~/rover_velocities", 10, std::bind(&SimpleRoverLocomotion::rover_velocities_callback, this, std::placeholders::_1));
 
   service_ = this->create_service<simple_rover_locomotion::srv::Activate>("~/activate", std::bind(&SimpleRoverLocomotion::activate, this, std::placeholders::_1, std::placeholders::_2));
@@ -13,11 +13,16 @@ SimpleRoverLocomotion::SimpleRoverLocomotion()
 
 }
 
-void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::TwistStamped::SharedPtr msg)
+void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
   // RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg->data.c_str());
 
-  RCLCPP_INFO(this->get_logger(), "I heard: %d.", msg->twist.linear.x);
+  RCLCPP_INFO(this->get_logger(), "X: %f.", msg->linear.x);
+  RCLCPP_INFO(this->get_logger(), "Y: %f.", msg->linear.y);
+  RCLCPP_INFO(this->get_logger(), "Z: %f.", msg->linear.z);
+  RCLCPP_INFO(this->get_logger(), "X: %f.", msg->angular.x);
+  RCLCPP_INFO(this->get_logger(), "Y: %f.", msg->angular.y);
+  RCLCPP_INFO(this->get_logger(), "Z: %f.", msg->angular.z);
 }
 
 void SimpleRoverLocomotion::activate(const simple_rover_locomotion::srv::Activate::Request::SharedPtr request,
