@@ -2,7 +2,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-
+#include <simple_rover_locomotion/srv/activate.hpp>
 
 class SimpleRoverLocomotion : public rclcpp::Node
 {
@@ -14,6 +14,9 @@ class SimpleRoverLocomotion : public rclcpp::Node
       rover_velocities_subscription_ = this->create_subscription<std_msgs::msg::String>(
       "~/rover_velocities", 10, std::bind(&SimpleRoverLocomotion::rover_velocities_callback, this, std::placeholders::_1));
 
+      service_ = this->create_service<simple_rover_locomotion::srv::Activate>("~/activate", std::bind(&SimpleRoverLocomotion::activate, this, std::placeholders::_1, std::placeholders::_2));
+
+
     }
 
   private:
@@ -24,13 +27,26 @@ class SimpleRoverLocomotion : public rclcpp::Node
 
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr joints_publisher_;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr rover_velocities_subscription_;
+    rclcpp::Service<simple_rover_locomotion::srv::Activate>::SharedPtr service_;
+ 
+    void activate(const simple_rover_locomotion::srv::Activate::Request::SharedPtr request,
+             std::shared_ptr<simple_rover_locomotion::srv::Activate::Response>      response)
+    {
+        if (request->goal_state) {
+            response->new_state = true;
+        }
+        else {response->new_state = false;}
 
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal State %d", request->goal_state);
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "New State %d", response->new_state);
+    }
   };
 
-  int main(int argc, char * argv[])
-  {
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<SimpleRoverLocomotion>());
-    rclcpp::shutdown();
-    return 0;
-  }
+
+int main(int argc, char * argv[])
+{
+rclcpp::init(argc, argv);
+rclcpp::spin(std::make_shared<SimpleRoverLocomotion>());
+rclcpp::shutdown();
+return 0;
+}
