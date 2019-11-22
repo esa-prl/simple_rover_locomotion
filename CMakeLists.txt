@@ -17,12 +17,17 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+include_directories(include)
+
+set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "std_srvs")
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Activate.srv")
 
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp)
-ament_target_dependencies(simple_rover_locomotion_node rclcpp std_msgs std_srvs ament_index_cpp)
+ament_target_dependencies(simple_rover_locomotion_node ${dependencies})
 rosidl_target_interfaces(simple_rover_locomotion_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 install(TARGETS
