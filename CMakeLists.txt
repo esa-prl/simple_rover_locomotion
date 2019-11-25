@@ -24,7 +24,8 @@ include_directories(include)
 set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "std_srvs")
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/Activate.srv")
+  "srv/Activate.srv"
+  "srv/ChangeLocomotionMode.srv")
 
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})

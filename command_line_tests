@@ -1,5 +1,11 @@
-ros2 topic pub -r 1 /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: {stamp: [1], frame_id: 'bla'},  twist: {linear: {x: 1.0, y: 2.0, z: 3.0}, angular:  {x: 1.0 ,y: 1.0 ,z: 1.0}}}"
+# Twist Tester using keyboard and topic remapping
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap /cmd_vel:=/simple_rover_locomotion/rover_velocities
 
-ros2 topic pub /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: auto,  twist.linear: {x: 1, y: 2, z: 3}, twist.angular: {x: 1,y: 1,z: 1}}"
+# Run joystick node with remap
+ros2 run joy joy_node --ros-args --remap /joy:=/gamepad
 
+# Publish String
 ros2 topic pub /chatter std_msgs/String "data: Hello ROS Developers"
+
+# Not working:
+ros2 topic pub -r 1 /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: {stamp: [1], frame_id: 'bla'},  twist: {linear: {x: 1.0, y: 2.0, z: 3.0}, angular:  {x: 1.0 ,y: 1.0 ,z: 1.0}}}"

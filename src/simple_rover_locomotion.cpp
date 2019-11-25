@@ -4,11 +4,14 @@
 SimpleRoverLocomotion::SimpleRoverLocomotion()
 : Node("simple_rover_locomotion")
 {
-  joints_publisher_ = this->create_publisher<std_msgs::msg::String>("~/joint_commands", 10);
+  joints_publisher_ = this->create_publisher<std_msgs::msg::String>("rover_joint_cmds", 10);
   rover_velocities_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
-  "~/rover_velocities", 10, std::bind(&SimpleRoverLocomotion::rover_velocities_callback, this, std::placeholders::_1));
+  "rover_motion_cmd", 10, std::bind(&SimpleRoverLocomotion::rover_velocities_callback, this, std::placeholders::_1));
 
-  service_ = this->create_service<simple_rover_locomotion::srv::Activate>("~/activate", std::bind(&SimpleRoverLocomotion::activate, this, std::placeholders::_1, std::placeholders::_2));
+  activate_service_ = this->create_service<simple_rover_locomotion::srv::Activate>("activate", std::bind(&SimpleRoverLocomotion::activate, this, std::placeholders::_1, std::placeholders::_2));
+  changelocomotionmode_service_ = this->create_service<simple_rover_locomotion::srv::ChangeLocomotionMode>("change_locomotion_mode", std::bind(&SimpleRoverLocomotion::change_locomotion_mode, this, std::placeholders::_1, std::placeholders::_2));
+  
+  RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started");
 
 
 }
@@ -35,6 +38,19 @@ void SimpleRoverLocomotion::activate(const simple_rover_locomotion::srv::Activat
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Goal State %d", request->goal_state);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "New State %d", response->new_state);
+}
+
+void SimpleRoverLocomotion::change_locomotion_mode(const simple_rover_locomotion::srv::ChangeLocomotionMode::Request::SharedPtr request,
+         std::shared_ptr<simple_rover_locomotion::srv::ChangeLocomotionMode::Response>      response)
+{
+    // if (request->locomotion_mode == '2D_KINEMATICS' || request->locomotion_mode == 'WHEELWALKING') {
+    //     response->response = 'LOCOMOTION CHANGED';
+    // }
+    // else {response->response = 'INVALID LOCOMOTION MODE REQUESTED';}
+
+    // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Response: %s", response->response.c_str());
+    response->response = request->locomotion_mode;
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Desired Locomotion Mode %s", request->locomotion_mode.c_str());
 }
 
 
