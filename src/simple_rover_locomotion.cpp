@@ -19,13 +19,12 @@ SimpleRoverLocomotion::SimpleRoverLocomotion()
 void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
   // RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg->data.c_str());
-
-  RCLCPP_INFO(this->get_logger(), "X: %f.", msg->linear.x);
-  RCLCPP_INFO(this->get_logger(), "Y: %f.", msg->linear.y);
-  RCLCPP_INFO(this->get_logger(), "Z: %f.", msg->linear.z);
-  RCLCPP_INFO(this->get_logger(), "X: %f.", msg->angular.x);
-  RCLCPP_INFO(this->get_logger(), "Y: %f.", msg->angular.y);
-  RCLCPP_INFO(this->get_logger(), "Z: %f.", msg->angular.z);
+  // RCLCPP_INFO(this->get_logger(), "X_linear: %f.", msg->linear.x);
+  // RCLCPP_INFO(this->get_logger(), "Y_linear: %f.", msg->linear.y);
+  // RCLCPP_INFO(this->get_logger(), "Z_linear: %f.", msg->linear.z);
+  // RCLCPP_INFO(this->get_logger(), "X_angular: %f.", msg->angular.x);
+  // RCLCPP_INFO(this->get_logger(), "Y_angular: %f.", msg->angular.y);
+  // RCLCPP_INFO(this->get_logger(), "Z_angular: %f.", msg->angular.z);
 }
 
 void SimpleRoverLocomotion::activate(const simple_rover_locomotion::srv::Activate::Request::SharedPtr request,
@@ -49,7 +48,7 @@ void SimpleRoverLocomotion::change_locomotion_mode(const simple_rover_locomotion
     // else {response->response = 'INVALID LOCOMOTION MODE REQUESTED';}
 
     // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Response: %s", response->response.c_str());
-    response->response = request->locomotion_mode;
+    response->response = "SUCCSEFULLY SET " + request->locomotion_mode + " MODE!";
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Desired Locomotion Mode %s", request->locomotion_mode.c_str());
 }
 
