@@ -15,17 +15,30 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 
 include_directories(include)
 
-set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "std_srvs")
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+set(msg_files
+  "msg/JointCommand.msg"
+  "msg/JointCommandArray.msg"
+  )
+
+set(srv_files
   "srv/Activate.srv"
   "srv/ChangeLocomotionMode.srv")
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  ${srv_files}
+  DEPENDENCIES std_msgs builtin_interfaces)
+
+set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "sensor_msgs" "std_srvs")
 
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp src/locomotion_mode.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})

@@ -7,5 +7,9 @@ ros2 run joy joy_node --ros-args --remap /joy:=/gamepad
 # Publish String
 ros2 topic pub /chatter std_msgs/String "data: Hello ROS Developers"
 
-# Not working:
-ros2 topic pub -r 1 /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: {stamp: [1], frame_id: 'bla'},  twist: {linear: {x: 1.0, y: 2.0, z: 3.0}, angular:  {x: 1.0 ,y: 1.0 ,z: 1.0}}}"
+# Dummy Twist Message:
+ros2 topic pub -r 1 /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: {stamp: {sec: 1, nanosec: 2}, frame_id: a frame},  twist: {linear: {x: 1.0, y: 2.0, z: 3.0}, angular:  {x: 1.0 ,y: 1.0 ,z: 1.0}}}"
+
+# Dummy Joint States
+ros2 topic pub -r 1 /joint_states sensor_msgs/JointState "{header: {stamp: {sec: 1, nanosec: 2}, frame_id: a frame}, name: {motor_1, motor_2}, position: {90, 180}, velocity: {}, effort: {}}"
+
