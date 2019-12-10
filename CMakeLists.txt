@@ -27,7 +27,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Activate.srv"
   "srv/ChangeLocomotionMode.srv")
 
-add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp)
+add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp src/locomotion_mode.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})
 rosidl_target_interfaces(simple_rover_locomotion_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
