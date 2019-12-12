@@ -15,16 +15,16 @@ def generate_launch_description():
 			]
 		),
 		Node(
-			package='simple_rover_locomotion',
-			# node_namespace=namespace_,
-			node_executable='simple_rover_locomotion_node',
-			node_name='simple_rover_locomotion_node'
-		),
-		Node(
 			package='gamepad_parser',
 			# node_namespace=namespace_,
 			node_executable='gamepad_parser_node',
 			node_name='gamepad_parser_node'
+		) ,
+		Node(
+			package='simple_rover_locomotion',
+			# node_namespace=namespace_,
+			node_executable='simple_rover_locomotion_node',
+			node_name='simple_rover_locomotion_node'
 		)
 
 		])

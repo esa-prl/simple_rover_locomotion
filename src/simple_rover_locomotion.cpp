@@ -27,8 +27,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   double lower_position_limit = -100;   // -100 deg
   double upper_position_limit = -lower_position_limit;    // +100 deg
 
-  RCLCPP_INFO(this->get_logger(), "Y_angular: %f.", msg->angular.y);  
-  RCLCPP_INFO(this->get_logger(), "\t\t\t\tMOTOR NAME: %s", current_joint_state_.name[0].c_str());
+  RCLCPP_INFO(this->get_logger(), "\t\t\t\tMOTOR NAME: %s", current_joint_state_.name[0].c_str()); 
 
 }
 

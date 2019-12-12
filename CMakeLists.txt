@@ -20,6 +20,7 @@ find_package(std_srvs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(urdf REQUIRED)
 
 include_directories(include)
 
@@ -38,7 +39,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   ${srv_files}
   DEPENDENCIES std_msgs builtin_interfaces)
 
-set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "sensor_msgs" "std_srvs")
+set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "sensor_msgs" "std_srvs" "urdf")
 
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp src/locomotion_mode.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})
@@ -47,5 +48,11 @@ rosidl_target_interfaces(simple_rover_locomotion_node ${PROJECT_NAME} "rosidl_ty
 install(TARGETS
   simple_rover_locomotion_node
   DESTINATION lib/${PROJECT_NAME})
+
+# install the launch directory
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 ament_package()

@@ -1,21 +1,29 @@
 #include "simple_rover_locomotion/locomotion_mode.hpp"
 
 LocomotionMode::LocomotionMode()
-: Node("locomotion_mode_node")
+: Node("locomotion_mode_node"), model_dir("/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"), model_name("marta.xml"), model_(new urdf::Model()), joints_(), links_() 
 {
-  joints_publisher_ = this->create_publisher<simple_rover_locomotion::msg::JointCommandArray>("rover_joint_cmds", 10);
+  model_path = model_dir + model_name;
 
+  // Create Services
   activate_service_ = this->create_service<simple_rover_locomotion::srv::Activate>("activate", std::bind(&LocomotionMode::activate, this, std::placeholders::_1, std::placeholders::_2));
   changelocomotionmode_service_ = this->create_service<simple_rover_locomotion::srv::ChangeLocomotionMode>("change_locomotion_mode", std::bind(&LocomotionMode::change_locomotion_mode, this, std::placeholders::_1, std::placeholders::_2));
+
+  // Create Publishers
+  joints_publisher_ = this->create_publisher<simple_rover_locomotion::msg::JointCommandArray>("rover_joint_cmds", 10);
   
-  // Create Private Subscription
+  // Create Subscriptions
   joint_state_subscription_ = this->create_subscription<sensor_msgs::msg::JointState>(
     "joint_states", 10, std::bind(&LocomotionMode::joint_state_callback, this, std::placeholders::_1));
 
-  RCLCPP_INFO(this->get_logger(), "LocomotionMode initialized");
+  // Load URDF
+  load_robot_model();
 
+  RCLCPP_INFO(this->get_logger(), "LocomotionMode initialized");
 }
 
+// Function to be called from the derived class while it is being initialized.
+// Creates a subscriber using the (now by derived class overwritten) callback function
 void LocomotionMode::initialize_subscribers()
 {
   rover_velocities_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
@@ -48,6 +56,7 @@ void LocomotionMode::change_locomotion_mode(const simple_rover_locomotion::srv::
     RCLCPP_INFO(this->get_logger(), "Desired Locomotion Mode %s", request->locomotion_mode.c_str());
 }
 
+// Dummy Callback function in case the derived class forgets to create a custom callback function
 void LocomotionMode::rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
   // RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg->data.c_str());
@@ -60,10 +69,41 @@ void LocomotionMode::rover_velocities_callback(const geometry_msgs::msg::Twist::
   RCLCPP_WARN(this->get_logger(), "Rover Velocities Callback was not overridden!");
 }
 
+// Load Robot Model (URDF or XACRO)
+void LocomotionMode::load_robot_model()
+{
+    if (!model_->initFile(model_path)){
+      RCLCPP_WARN(this->get_logger(), "URDF file %s not found", model_path.c_str());
+    }
+    else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file");
+    
+    // Get Links
+    model_->getLinks(links_);
+
+    for (size_t i = 0; i < links_.size(); i++) {
+      std::cout << "\t "<< links_[i]->name << std::endl;
+    }
+    std::cout << "Found " << links_.size() << " Links" << std::endl;
+
+    // Get Joints
+    for (size_t i = 0; i < links_.size(); i++) {
+      if (links_[i]->child_joints.size() != 0) {
+        for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
+          joints_.push_back(child_joint);
+          std::cout << "\t "<< child_joint->name << std::endl;
+          // RCLCPP_INFO(this->get_logger(), "Effort: %d", child_joint->limits->effort);
+          std::cout << child_joint->limits->lower << std::endl;
+        }     
+      }   
+    }
+
+
+}
+
+
+// Save the joint states into the class
 void LocomotionMode::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
   // Not ideal since it overrides all previous saved joint states even if they didn't change.
   current_joint_state_ = *msg;
-  // RCLCPP_INFO(this->get_logger(), "Desired Locomotion Mode ");
-  std::cout << current_joint_state_.name[0].c_str() << std::endl;
 }
