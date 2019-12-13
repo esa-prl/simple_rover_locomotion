@@ -4,6 +4,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <urdf/model.h>
 
+#include <chrono>
 #include <memory>
 
 #include <geometry_msgs/msg/twist.hpp>
@@ -16,11 +17,12 @@
 #include <simple_rover_locomotion/srv/activate.hpp>
 #include <simple_rover_locomotion/srv/change_locomotion_mode.hpp>
 
+using namespace std::chrono_literals;
 
 class LocomotionMode : public rclcpp::Node
 {
   public:
-    LocomotionMode();
+    LocomotionMode(rclcpp::NodeOptions options);
 
   protected:
     // Joints Pulisher
@@ -31,6 +33,9 @@ class LocomotionMode : public rclcpp::Node
 
     // Initialize Subscriber with callback function from derived class
     void initialize_subscribers();
+
+    // Load parameters
+    void load_params();
 
     // Load robot model (urdf)
     void load_robot_model();

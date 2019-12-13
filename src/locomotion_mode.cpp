@@ -1,14 +1,19 @@
 #include "simple_rover_locomotion/locomotion_mode.hpp"
 
-LocomotionMode::LocomotionMode()
-: Node("locomotion_mode_node"),
+LocomotionMode::LocomotionMode(rclcpp::NodeOptions options)
+: Node("locomotion_mode_node",
+  options.allow_undeclared_parameters(true).
+      automatically_declare_parameters_from_overrides(true)),
 model_dir("/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"),
-model_name("marta.xml"),
+model_name("model.xml"),
 model_(new urdf::Model()),
 joints_(),
 links_(),
 current_joint_state_()
 {
+  //load Params
+  load_params();
+
   model_path = model_dir + model_name;
 
   // Create Services
@@ -73,6 +78,40 @@ void LocomotionMode::rover_velocities_callback(const geometry_msgs::msg::Twist::
   RCLCPP_INFO(this->get_logger(), "Y_angular: %f.", msg->angular.y);
 
   RCLCPP_WARN(this->get_logger(), "Rover Velocities Callback was not overridden!");
+}
+
+// Load Parameters
+void LocomotionMode::load_params()
+{
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
+  // this->declare_parameter("urdf_model_path:");
+  // this->declare_parameter("bar");
+
+  
+  // TODO: Tried delaring this a member variable, but didn't get it running. Check later if there are better tutorials for param loading. 2019-12-12
+  auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(this);
+
+  while (!parameters_client->wait_for_service(1s)) {
+    if (!rclcpp::ok()) {
+      RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
+      rclcpp::shutdown();
+    }
+    RCLCPP_INFO(this->get_logger(), "service not available, waiting again...");
+  }
+
+  // auto set_parameters_results = parameters_client->set_parameters({
+  //     rclcpp::Parameter("foo", 2),
+  //     rclcpp::Parameter("bar", "hello")
+  //   });
+
+  for (auto & parameter : parameters_client->get_parameters({"urdf_model_path"}))
+  {
+    std::cout << "\nParameter name: " << parameter.get_name() << std::endl;
+    std::cout << "\nParameter value (" << parameter.get_type_name() << "): " << 
+      parameter.value_to_string() << std::endl;
+  }
+
 }
 
 // Load Robot Model (URDF or XACRO)

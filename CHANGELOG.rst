@@ -4,8 +4,9 @@ Changelog for package simple_rover_locomotion
 
 TODO
 ----
-* load paths from config file
+* load xacro file
 * implement generic rover library
+* load paths from config file
 * publish joint message
 
 NICE TO HAVE

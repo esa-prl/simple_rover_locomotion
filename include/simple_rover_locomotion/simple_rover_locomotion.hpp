@@ -10,7 +10,7 @@
 class SimpleRoverLocomotion: public LocomotionMode
 {
   public:
-    SimpleRoverLocomotion();
+    SimpleRoverLocomotion(rclcpp::NodeOptions options);
 
   private:
     void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
