@@ -1,7 +1,13 @@
 #include "simple_rover_locomotion/locomotion_mode.hpp"
 
 LocomotionMode::LocomotionMode()
-: Node("locomotion_mode_node"), model_dir("/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"), model_name("marta.xml"), model_(new urdf::Model()), joints_(), links_() 
+: Node("locomotion_mode_node"),
+model_dir("/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"),
+model_name("marta.xml"),
+model_(new urdf::Model()),
+joints_(),
+links_(),
+current_joint_state_()
 {
   model_path = model_dir + model_name;
 
@@ -81,18 +87,15 @@ void LocomotionMode::load_robot_model()
     model_->getLinks(links_);
 
     for (size_t i = 0; i < links_.size(); i++) {
-      std::cout << "\t "<< links_[i]->name << std::endl;
+      RCLCPP_DEBUG(this->get_logger(), "\t %s", links_[i]->name.c_str());
     }
-    std::cout << "Found " << links_.size() << " Links" << std::endl;
 
     // Get Joints
     for (size_t i = 0; i < links_.size(); i++) {
       if (links_[i]->child_joints.size() != 0) {
         for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
           joints_.push_back(child_joint);
-          std::cout << "\t "<< child_joint->name << std::endl;
-          // RCLCPP_INFO(this->get_logger(), "Effort: %d", child_joint->limits->effort);
-          std::cout << child_joint->limits->lower << std::endl;
+          RCLCPP_DEBUG(this->get_logger(), "\t %s", child_joint->name.c_str());
         }     
       }   
     }

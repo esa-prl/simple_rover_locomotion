@@ -5,8 +5,8 @@ Changelog for package simple_rover_locomotion
 TODO
 ----
 * load paths from config file
-* load rover model from config file
-* move generic rover library
+* implement generic rover library
+* publish joint message
 
 NICE TO HAVE
 ------------
@@ -18,6 +18,8 @@ KNOWN BUGS
 
 0.0.1 (2019-11-20)
 ------------------
+* added launch file
+* loaded rover model from config file
 * add realistic messages
 * inherited from locomotion_mode class
 * test subscriber
