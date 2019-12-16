@@ -9,52 +9,44 @@ import tempfile
 namespace_ = 'marta'
 
 def generate_launch_description():
-	
 
-	log_level = 'INFO'
-	log_level_arg = '--log-level ' + log_level
-
+	# Load XACRO and parse to URDF
 	xacro_model_dir  = "/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"
 	xacro_model_name = "rover_dummy.xacro"
-
 	xacro_model_path = os.path.join(xacro_model_dir, xacro_model_name)
 
+	# Parse XACRO file to URDF
 	urdf_model_path = to_urdf(xacro_model_path)
-
-	urdf_arg = '--ros-args --param urdf_model_path:=' + urdf_model_path
-
-	cmd_args = '--ros-args ' + log_level_arg
+	urdf_params = {'urdf_model_path': urdf_model_path}
 
 	return LaunchDescription([
 		Node(
 			package='joy',
-			# node_namespace=namespace_,
+			node_namespace=namespace_,
 			node_executable='joy_node',
 			node_name='joy_node',
 			remappings=[
 				('joy', 'gamepad')
 			],
 			output='screen',
-			emulate_tty=True,
-			arguments=[(cmd_args)]
+			emulate_tty=True
 		),
 		Node(
 			package='gamepad_parser',
-			# node_namespace=namespace_,
+			node_namespace=namespace_,
 			node_executable='gamepad_parser_node',
-			# node_name='gamepad_parser_node',
+			node_name='gamepad_parser_node',
 			output='screen',
-			emulate_tty=True,
-			arguments=[(cmd_args)]
+			emulate_tty=True
 		) ,
 		Node(
 			package='simple_rover_locomotion',
-			# node_namespace=namespace_,
+			node_namespace=namespace_,
 			node_executable='simple_rover_locomotion_node',
-			# node_name='simple_rover_locomotion_node',
+			node_name='simple_rover_locomotion_node',
 			output='screen',
-			emulate_tty=True,
-			arguments=[(urdf_arg)]
+			parameters=[(urdf_params)],
+			emulate_tty=True
 		)
 		])
 

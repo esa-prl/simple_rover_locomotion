@@ -4,17 +4,16 @@ LocomotionMode::LocomotionMode(rclcpp::NodeOptions options)
 : Node("locomotion_mode_node",
   options.allow_undeclared_parameters(true).
       automatically_declare_parameters_from_overrides(true)),
-model_dir("/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"),
-model_name("model.xml"),
-model_(new urdf::Model()),
-joints_(),
-links_(),
-current_joint_state_()
+  model_(new urdf::Model()),
+  joints_(),
+  links_(),
+  current_joint_state_()
 {
-  //load Params
+  // Load Parameters
   load_params();
 
-  model_path = model_dir + model_name;
+  // Load URDF
+  load_robot_model();
 
   // Create Services
   activate_service_ = this->create_service<simple_rover_locomotion::srv::Activate>("activate", std::bind(&LocomotionMode::activate, this, std::placeholders::_1, std::placeholders::_2));
@@ -26,9 +25,6 @@ current_joint_state_()
   // Create Subscriptions
   joint_state_subscription_ = this->create_subscription<sensor_msgs::msg::JointState>(
     "joint_states", 10, std::bind(&LocomotionMode::joint_state_callback, this, std::placeholders::_1));
-
-  // Load URDF
-  load_robot_model();
 
   RCLCPP_INFO(this->get_logger(), "LocomotionMode initialized");
 }
@@ -83,12 +79,8 @@ void LocomotionMode::rover_velocities_callback(const geometry_msgs::msg::Twist::
 // Load Parameters
 void LocomotionMode::load_params()
 {
-  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+  // Look in /demos/demo_nodes_cpp/src/parameters/set_and_get_parameters.cpp for implementation examples
 
-  // this->declare_parameter("urdf_model_path:");
-  // this->declare_parameter("bar");
-
-  
   // TODO: Tried delaring this a member variable, but didn't get it running. Check later if there are better tutorials for param loading. 2019-12-12
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(this);
 
@@ -100,46 +92,36 @@ void LocomotionMode::load_params()
     RCLCPP_INFO(this->get_logger(), "service not available, waiting again...");
   }
 
-  // auto set_parameters_results = parameters_client->set_parameters({
-  //     rclcpp::Parameter("foo", 2),
-  //     rclcpp::Parameter("bar", "hello")
-  //   });
-
-  for (auto & parameter : parameters_client->get_parameters({"urdf_model_path"}))
-  {
-    std::cout << "\nParameter name: " << parameter.get_name() << std::endl;
-    std::cout << "\nParameter value (" << parameter.get_type_name() << "): " << 
-      parameter.value_to_string() << std::endl;
-  }
-
+  model_path_ = parameters_client->get_parameters({"urdf_model_path"})[0].value_to_string();
 }
 
 // Load Robot Model (URDF or XACRO)
 void LocomotionMode::load_robot_model()
 {
-    if (!model_->initFile(model_path)){
-      RCLCPP_WARN(this->get_logger(), "URDF file %s not found", model_path.c_str());
+    if (!model_->initFile(model_path_)){
+      RCLCPP_ERROR(this->get_logger(), "URDF file [%s] not found. Make sure the path is specified in the launch file.", model_path_.c_str());
     }
-    else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file");
+    else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file.");
     
     // Get Links
     model_->getLinks(links_);
 
-    for (size_t i = 0; i < links_.size(); i++) {
-      RCLCPP_DEBUG(this->get_logger(), "\t %s", links_[i]->name.c_str());
-    }
+    // Printout all Joints and Links
 
-    // Get Joints
-    for (size_t i = 0; i < links_.size(); i++) {
-      if (links_[i]->child_joints.size() != 0) {
-        for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
-          joints_.push_back(child_joint);
-          RCLCPP_DEBUG(this->get_logger(), "\t %s", child_joint->name.c_str());
-        }     
-      }   
-    }
-
-
+    // RCLCPP_INFO(this->get_logger(), "LINKS:");
+    // for (size_t i = 0; i < links_.size(); i++) {
+    //   RCLCPP_INFO(this->get_logger(), "\t %s", links_[i]->name.c_str());
+    // }
+    // RCLCPP_INFO(this->get_logger(), "JOINTS:");
+    // // Get Joints
+    // for (size_t i = 0; i < links_.size(); i++) {
+    //   if (links_[i]->child_joints.size() != 0) {
+    //     for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
+    //       joints_.push_back(child_joint);
+    //       RCLCPP_INFO(this->get_logger(), "\t %s", child_joint->name.c_str());
+    //     }     
+    //   }   
+    // }
 }
 
 

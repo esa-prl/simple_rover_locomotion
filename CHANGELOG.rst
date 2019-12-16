@@ -4,9 +4,8 @@ Changelog for package simple_rover_locomotion
 
 TODO
 ----
-* load xacro file
 * implement generic rover library
-* load paths from config file
+* Split Locomotion Mode Library from Simple Rover Locomotion
 * publish joint message
 
 NICE TO HAVE
@@ -19,6 +18,8 @@ KNOWN BUGS
 
 0.0.1 (2019-11-20)
 ------------------
+* load paths from config file
+* load xacro file
 * added launch file
 * loaded rover model from config file
 * add realistic messages

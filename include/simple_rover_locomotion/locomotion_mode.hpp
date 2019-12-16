@@ -68,9 +68,9 @@ class LocomotionMode : public rclcpp::Node
     void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
     // Model
-    std::string model_name;
-    std::string model_dir;
-    std::string model_path;
+    std::string model_name_;
+    std::string model_dir_;
+    std::string model_path_;
 
     std::shared_ptr<urdf::Model> model_;
     std::vector<std::shared_ptr<urdf::Joint>> joints_;

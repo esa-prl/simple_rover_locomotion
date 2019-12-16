@@ -5,7 +5,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options) : Loco
   // Create Subscription and callback to derived class method
   this->initialize_subscribers();
 
-  RCLCPP_WARN(this->get_logger(), "SimpleRoverLocomotion started");
+  RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started");
 
 }
 
