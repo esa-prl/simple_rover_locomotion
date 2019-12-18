@@ -4,10 +4,10 @@ LocomotionMode::LocomotionMode(rclcpp::NodeOptions options)
 : Node("locomotion_mode_node",
   options.allow_undeclared_parameters(true).
       automatically_declare_parameters_from_overrides(true)),
+  current_joint_state_(),
   model_(new urdf::Model()),
   joints_(),
-  links_(),
-  current_joint_state_()
+  links_()
 {
   // Load Parameters
   load_params();
@@ -108,8 +108,11 @@ void LocomotionMode::load_robot_model()
     std::string steering_name = ("DRV");
     std::string deployment_name = ("DRV");
 
+
+
     // Get Links
     model_->getLinks(links_);
+    RCLCPP_INFO(this->get_logger(), "Here 1");
 
     // Loop through all links
     for (std::shared_ptr<urdf::Link> link : links_) {
@@ -120,32 +123,48 @@ void LocomotionMode::load_robot_model()
           // RCLCPP_INFO(this->get_logger(), "\t %s", child_joint->name.c_str());
         }     
       }
+  
+      RCLCPP_INFO(this->get_logger(), "Here 2");
 
       // Get Driving links and create legs
       if (link->name.find(driving_name) != std::string::npos) {
-        std::shared_ptr<LocomotionMode::Leg> leg;
+        auto leg = std::make_shared<LocomotionMode::Leg>();
 
-        leg->driving_motor = init_motor(link);
+        init_motor(leg->driving_motor, link);
+        // leg->driving_motor = init_motor(link);
+
         legs_.push_back(leg);
       }
-
     }
 
     // TODO: Check Joint type to be continuous or revolut?
     // Loop through all legs and find steering and deployment joints.
     for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
     {
-      leg->steering_motor = init_motor(get_link_in_leg(leg->driving_motor.link, steering_name));
-      leg->deployment_motor = init_motor(get_link_in_leg(leg->driving_motor.link, deployment_name));
+      init_motor(leg->steering_motor, get_link_in_leg(leg->driving_motor->link, steering_name));
+      init_motor(leg->deployment_motor, get_link_in_leg(leg->driving_motor->link, deployment_name));
     }
+
 
 }
 
-LocomotionMode::Motor LocomotionMode::init_motor(std::shared_ptr<urdf::Link> link) {
-  LocomotionMode::Motor motor;
-  motor.link = link;
-  motor.joint = link->parent_joint;
-  motor.global_pose = get_parent_joint_position(link);
+void LocomotionMode::init_motor(std::shared_ptr<LocomotionMode::Motor> &motor, std::shared_ptr<urdf::Link> link) {
+  motor->link = link;
+  
+  motor->joint = link->parent_joint;
+
+  motor->global_pose = get_parent_joint_position(link);
+}
+
+std::shared_ptr<LocomotionMode::Motor> LocomotionMode::init_motor(std::shared_ptr<urdf::Link> link) {
+  // std::shared_ptr<LocomotionMode::Motor> motor;
+  auto motor = std::make_shared<LocomotionMode::Motor>();
+
+  motor->link = link;
+  
+  motor->joint = link->parent_joint;
+
+  motor->global_pose = get_parent_joint_position(link);
 
   return motor;
 }
@@ -153,7 +172,6 @@ LocomotionMode::Motor LocomotionMode::init_motor(std::shared_ptr<urdf::Link> lin
 // Derive Position of Joint in static configuration
 // TODO: Pass value instaed of shared_ptr
 urdf::Pose LocomotionMode::get_parent_joint_position(std::shared_ptr<urdf::Link> &link) {
-
   // Copy link so we don't overwrite the original one
   std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
 
@@ -167,11 +185,14 @@ urdf::Pose LocomotionMode::get_parent_joint_position(std::shared_ptr<urdf::Link>
     tmp_link = tmp_link->getParent();
   }
 
+
+
   return child_pose;
 }
 
 urdf::Pose LocomotionMode::transpose_pose(urdf::Pose parent, urdf::Pose child)
 {
+
   // Based on convention from Hendriks Summary
   // TODO Transform orientation
   urdf::Pose new_child;
@@ -210,21 +231,7 @@ std::shared_ptr<urdf::Link> LocomotionMode::get_link_in_leg(std::shared_ptr<urdf
     if (tmp_link->parent_joint->name.find(name) != std::string::npos) return tmp_link;
     tmp_link = tmp_link->getParent();
   }
-  
-}
-
-
-void LocomotionMode::derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors) {
-  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
-
-  std::cout << "LEG: " << std::endl;
-  
-  while (tmp_link->parent_joint) {
-    std::cout << "\tLink Name: " << tmp_link->name << std::endl;
-
-    leg_motors.push_back(tmp_link->parent_joint);
-    tmp_link = tmp_link->getParent();
-  }
+  // Add return type that will cause if(return_object) to be false
 }
 
 
@@ -232,7 +239,24 @@ void LocomotionMode::derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<s
 void LocomotionMode::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
   // Not ideal since it overrides all previous saved joint states even if they didn't change.
-  current_joint_state_ = *msg;
-}
+  // current_joint_state_ = *msg;
 
-// std::vector<double> LocomotionMode::get_joint_
+  // for (size_t i; i<msg->name.size(); i++) {
+  //   // RCLCPP_INFO(this->get_logger(), "Message Motor Name %s.", msg->name[i]);
+    
+  //   for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
+  //     for (std::shared_ptr<Motor> motor : leg->motors){
+  //       if (msg->name == motor->joint->name) {
+  //         RCLCPP_INFO(this->get_logger(), "YAY");
+  //       }
+  //       else {
+  //         RCLCPP_INFO(this->get_logger(), "Message Motor Name %s.", msg->name[i].c_str());
+  //         RCLCPP_INFO(this->get_logger(), "Motor Name %s.", motor->joint->name);
+
+  //       }
+
+  //     } 
+
+  // }
+
+}

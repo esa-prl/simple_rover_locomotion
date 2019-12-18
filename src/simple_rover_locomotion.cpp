@@ -18,18 +18,35 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   RCLCPP_DEBUG(this->get_logger(), "Y_angular: %f.", msg->angular.y);
   RCLCPP_DEBUG(this->get_logger(), "Z_angular: %f.", msg->angular.z);
 
-  // double x_dot = msg->linear.x;
-  // double y_dot = msg->linear.y;
-  // double theta_dot = msg->angular.z;
-
-  // double lower_position_limit = -100;   // -100 deg
-  // double upper_position_limit = -lower_position_limit;    // +100 deg
-
   // It's important to check if the message was already initialized
   // TODO: Check if Joint State is older than a certain age and if send a warning/refuse execution accordingly
   for (size_t i = 0; i < current_joint_state_.name.size(); i++)
   {
     RCLCPP_INFO(this->get_logger(), "\t\t\t\tMOTOR NAME: %s", current_joint_state_.name[i].c_str());
+  }
+
+  double x_dot = msg->linear.x;
+  double y_dot = msg->linear.y;
+  double theta_dot = msg->angular.z;
+
+  double lower_position_limit = -100;   // -100 deg
+  double upper_position_limit = -lower_position_limit;    // +100 deg
+
+  // set the wheel steering
+  for (std::shared_ptr<LocomotionMode::Leg> leg : legs_) {
+    double alpha;         // [rad] Angle of wheel steering center to origin
+    double l;             // [m] Radial Distance from Wheel Steering center to Origin
+    double beta_offset;   // [rad] Static offset to calculate steering angle from computed angle
+    double beta;          // [rad] Computed angle derived from 2D kinematic model
+    double beta_steer;    // [rad] Steering Angle to send to platform driver
+    double r;             // [m] Wheel Radius
+    double phi_dot;       // [rad/s] Wheel velocity
+    bool flip_velocity = false;
+
+    int adjustment_count = 0;
+
+    // double beta_current = steeringPositionReadings[i];  // Current steering Angle
+
   }
 
 }

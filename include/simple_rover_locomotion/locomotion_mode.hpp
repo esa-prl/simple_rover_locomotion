@@ -32,13 +32,25 @@ class LocomotionMode : public rclcpp::Node
         std::shared_ptr<urdf::Joint> joint; 
         std::shared_ptr<urdf::Link> link; 
         urdf::Pose global_pose;
+
     };
 
     struct Leg
     {
-        Motor driving_motor;
-        Motor steering_motor;
-        Motor deployment_motor;
+        std::shared_ptr<Motor> driving_motor;
+        std::shared_ptr<Motor> steering_motor;
+        std::shared_ptr<Motor> deployment_motor;
+        std::vector<std::shared_ptr<Motor>> motors;
+
+        Leg() :
+        driving_motor(std::make_shared<Motor>()),
+        steering_motor(std::make_shared<Motor>()),
+        deployment_motor(std::make_shared<Motor>())
+        {
+            motors.push_back(driving_motor);
+            motors.push_back(steering_motor);
+            motors.push_back(deployment_motor);
+        } 
     };
 
   protected:
@@ -64,6 +76,7 @@ class LocomotionMode : public rclcpp::Node
     sensor_msgs::msg::JointState current_joint_state_;
 
     // Model
+    std::shared_ptr<urdf::Model> model_;
     std::vector<std::shared_ptr<LocomotionMode::Leg>> legs_;
 
   private:
@@ -92,13 +105,12 @@ class LocomotionMode : public rclcpp::Node
     std::string model_dir_;
     std::string model_path_;
 
-    std::shared_ptr<urdf::Model> model_;
     std::vector<std::shared_ptr<urdf::Joint>> joints_;
     std::vector<std::shared_ptr<urdf::Link>> links_;
 
-    LocomotionMode::Motor init_motor(std::shared_ptr<urdf::Link> link);
+    void init_motor(std::shared_ptr<LocomotionMode::Motor> &motor, std::shared_ptr<urdf::Link> link);
 
-    void derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors);
+    std::shared_ptr<LocomotionMode::Motor> init_motor(std::shared_ptr<urdf::Link> link);
 
     // Find first joint in leg, which name contains the specified name
     std::shared_ptr<urdf::Link> get_link_in_leg(std::shared_ptr<urdf::Link> &start_link, std::string name);  
