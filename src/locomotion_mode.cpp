@@ -102,67 +102,57 @@ void LocomotionMode::load_robot_model()
       RCLCPP_ERROR(this->get_logger(), "URDF file [%s] not found. Make sure the path is specified in the launch file.", model_path_.c_str());
     }
     else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file.");
-    
+ 
+    // TODO: make name parameters
+    std::string driving_name = ("DRV");
+    std::string steering_name = ("DRV");
+    std::string deployment_name = ("DRV");
+
     // Get Links
     model_->getLinks(links_);
 
-    // Printout all Joints and Links
-
-    // RCLCPP_INFO(this->get_logger(), "LINKS:");
-    // for (size_t i = 0; i < links_.size(); i++) {
-    //   RCLCPP_INFO(this->get_logger(), "\t %s", links_[i]->name.c_str());
-    // }
-    // RCLCPP_INFO(this->get_logger(), "JOINTS:");
-    // Get Joints
-    for (size_t i = 0; i < links_.size(); i++) {
-      if (links_[i]->child_joints.size() != 0) {
-        for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
+    // Loop through all links
+    for (std::shared_ptr<urdf::Link> link : links_) {
+      // Get Joints
+      if (link->child_joints.size() != 0) {
+        for (std::shared_ptr<urdf::Joint> child_joint : link->child_joints) {
           joints_.push_back(child_joint);
           // RCLCPP_INFO(this->get_logger(), "\t %s", child_joint->name.c_str());
         }     
-      }   
-    }
-        
-    // Get Driving LINK
-    std::string driving_name = ("DRV");
-
-    std::vector<std::shared_ptr<urdf::Link>> driving_links;
-
-    for (size_t i = 0; i < links_.size(); i++) {
-      RCLCPP_INFO(this->get_logger(), "%s", links_[i]->name.c_str());
-      if (links_[i]->name.find(driving_name) != std::string::npos) {
-        driving_links.push_back(links_[i]);
       }
+
+      // Get Driving links and create legs
+      if (link->name.find(driving_name) != std::string::npos) {
+        std::shared_ptr<LocomotionMode::Leg> leg;
+
+        leg->driving_motor = init_motor(link);
+        legs_.push_back(leg);
+      }
+
     }
 
-
-    for (std::shared_ptr<urdf::Link> driving_link : driving_links)
+    // TODO: Check Joint type to be continuous or revolut?
+    // Loop through all legs and find steering and deployment joints.
+    for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
     {
-      std::shared_ptr<urdf::Joint> driving_joint = driving_link->parent_joint;
-
-      // Derive 2D Position
-      std::vector<double> position = get_parent_joint_position(driving_link);
-      
-      // // Derive Steering Limits
-      double effort = driving_joint->limits->effort;
-      // // etc.
-
-      // Check if driving wheel is steerable
-      // Derive Steering Joint
-      // if (std::shared_ptr<urdf::Joint> steering_joint = get_steering_joint(driving_link)) {
-      if (std::shared_ptr<urdf::Joint> steering_joint = get_joint_in_leg(driving_link, ("STR"))) {
-        std::cout << "Steering Joint found: ";
-        // Compute steering angle and wheel speeds
-        std::cout << steering_joint->name << std::endl;
-
-      }
-
+      leg->steering_motor = init_motor(get_link_in_leg(leg->driving_motor.link, steering_name));
+      leg->deployment_motor = init_motor(get_link_in_leg(leg->driving_motor.link, deployment_name));
     }
 
 }
 
+LocomotionMode::Motor LocomotionMode::init_motor(std::shared_ptr<urdf::Link> link) {
+  LocomotionMode::Motor motor;
+  motor.link = link;
+  motor.joint = link->parent_joint;
+  motor.global_pose = get_parent_joint_position(link);
+
+  return motor;
+}
+
+// Derive Position of Joint in static configuration
 // TODO: Pass value instaed of shared_ptr
-std::vector<double> LocomotionMode::get_parent_joint_position(std::shared_ptr<urdf::Link> &link) {
+urdf::Pose LocomotionMode::get_parent_joint_position(std::shared_ptr<urdf::Link> &link) {
 
   // Copy link so we don't overwrite the original one
   std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
@@ -176,9 +166,8 @@ std::vector<double> LocomotionMode::get_parent_joint_position(std::shared_ptr<ur
 
     tmp_link = tmp_link->getParent();
   }
-  std::vector<double> position{child_pose.position.x, child_pose.position.y, child_pose.position.z};
 
-  return position;
+  return child_pose;
 }
 
 urdf::Pose LocomotionMode::transpose_pose(urdf::Pose parent, urdf::Pose child)
@@ -213,36 +202,17 @@ urdf::Pose LocomotionMode::transpose_pose(urdf::Pose parent, urdf::Pose child)
   return new_child;
 }
 
-std::shared_ptr<urdf::Joint> LocomotionMode::get_joint_in_leg(std::shared_ptr<urdf::Link> &link, std::string name) {  
-  
-  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
+std::shared_ptr<urdf::Link> LocomotionMode::get_link_in_leg(std::shared_ptr<urdf::Link> &start_link, std::string name) {
+
+  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*start_link);
 
   while (tmp_link->parent_joint) {
-    if (tmp_link->parent_joint->name.find(name) != std::string::npos) return tmp_link->parent_joint;
+    if (tmp_link->parent_joint->name.find(name) != std::string::npos) return tmp_link;
     tmp_link = tmp_link->getParent();
   }
-}
-
-
-std::shared_ptr<urdf::Joint> LocomotionMode::get_steering_joint(std::shared_ptr<urdf::Link> &link) {  
-  return get_joint_in_leg(link, ("STR"));
-}
-
-bool LocomotionMode::is_steerable(std::shared_ptr<urdf::Link> &link) {
-  std::cout << "CHECKING IF WHEEL IS STEERABLE: " << std::endl;
   
-  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
-  
-  std::string steering_name = ("STR");
-
-  while (tmp_link->parent_joint) {
-    if (tmp_link->parent_joint->name.find(steering_name) != std::string::npos) return true;
-    tmp_link = tmp_link->getParent();
-  }
-  std::cout << "NOT STEERABLE!" << std::endl;
-
-  return false;
 }
+
 
 void LocomotionMode::derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors) {
   std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
@@ -255,7 +225,6 @@ void LocomotionMode::derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<s
     leg_motors.push_back(tmp_link->parent_joint);
     tmp_link = tmp_link->getParent();
   }
-
 }
 
 

@@ -19,10 +19,27 @@
 
 using namespace std::chrono_literals;
 
+
 class LocomotionMode : public rclcpp::Node
 {
   public:
     LocomotionMode(rclcpp::NodeOptions options);
+
+    // TODO: Inside this namespace? 
+    // TODO: What should be pointers, what not?
+    struct Motor
+    {
+        std::shared_ptr<urdf::Joint> joint; 
+        std::shared_ptr<urdf::Link> link; 
+        urdf::Pose global_pose;
+    };
+
+    struct Leg
+    {
+        Motor driving_motor;
+        Motor steering_motor;
+        Motor deployment_motor;
+    };
 
   protected:
     // Joints Pulisher
@@ -45,6 +62,9 @@ class LocomotionMode : public rclcpp::Node
     simple_rover_locomotion::msg::JointCommandArray joint_command_array_;
 
     sensor_msgs::msg::JointState current_joint_state_;
+
+    // Model
+    std::vector<std::shared_ptr<LocomotionMode::Leg>> legs_;
 
   private:
 
@@ -76,14 +96,14 @@ class LocomotionMode : public rclcpp::Node
     std::vector<std::shared_ptr<urdf::Joint>> joints_;
     std::vector<std::shared_ptr<urdf::Link>> links_;
 
+    LocomotionMode::Motor init_motor(std::shared_ptr<urdf::Link> link);
+
     void derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors);
-    bool is_steerable(std::shared_ptr<urdf::Link> &link);
 
     // Find first joint in leg, which name contains the specified name
-    std::shared_ptr<urdf::Joint> get_joint_in_leg(std::shared_ptr<urdf::Link> &link, std::string name);  
-    std::shared_ptr<urdf::Joint> get_steering_joint(std::shared_ptr<urdf::Link> &link);
+    std::shared_ptr<urdf::Link> get_link_in_leg(std::shared_ptr<urdf::Link> &start_link, std::string name);  
 
-    std::vector<double> get_parent_joint_position(std::shared_ptr<urdf::Link> &link);
+    urdf::Pose get_parent_joint_position(std::shared_ptr<urdf::Link> &link);
 
     urdf::Pose transpose_pose(urdf::Pose parent, urdf::Pose child);
 
