@@ -19,7 +19,27 @@ def generate_launch_description():
 	urdf_model_path = to_urdf(xacro_model_path)
 	urdf_params = {'urdf_model_path': urdf_model_path}
 
+	tf_params = {'robot_description': urdf_model_path}
+
 	return LaunchDescription([
+		# Node(
+		# 	package='tf2_ros',
+		# 	node_executable='static_transform_publisher',
+		# 	node_name='link_back_left_broadcaster',
+		# 	arguments=['0 0 0 0 0 0 0 base_link link_back_left']
+		# ),
+		Node(
+			package='robot_state_publisher',
+			node_namespace=namespace_,
+			node_executable='robot_state_publisher',
+			node_name='robot_state_publisher_node',
+			output='screen',
+			# remappings=[
+			# 	('robot_description', 'urdf_model_path')
+			# ],
+			arguments=[urdf_model_path],			
+			emulate_tty=True
+		),
 		Node(
 			package='joy',
 			node_namespace=namespace_,

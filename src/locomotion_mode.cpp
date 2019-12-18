@@ -113,15 +113,149 @@ void LocomotionMode::load_robot_model()
     //   RCLCPP_INFO(this->get_logger(), "\t %s", links_[i]->name.c_str());
     // }
     // RCLCPP_INFO(this->get_logger(), "JOINTS:");
-    // // Get Joints
-    // for (size_t i = 0; i < links_.size(); i++) {
-    //   if (links_[i]->child_joints.size() != 0) {
-    //     for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
-    //       joints_.push_back(child_joint);
-    //       RCLCPP_INFO(this->get_logger(), "\t %s", child_joint->name.c_str());
-    //     }     
-    //   }   
-    // }
+    // Get Joints
+    for (size_t i = 0; i < links_.size(); i++) {
+      if (links_[i]->child_joints.size() != 0) {
+        for (std::shared_ptr<urdf::Joint> child_joint : links_[i]->child_joints) {
+          joints_.push_back(child_joint);
+          // RCLCPP_INFO(this->get_logger(), "\t %s", child_joint->name.c_str());
+        }     
+      }   
+    }
+        
+    // Get Driving LINK
+    std::string driving_name = ("DRV");
+
+    std::vector<std::shared_ptr<urdf::Link>> driving_links;
+
+    for (size_t i = 0; i < links_.size(); i++) {
+      RCLCPP_INFO(this->get_logger(), "%s", links_[i]->name.c_str());
+      if (links_[i]->name.find(driving_name) != std::string::npos) {
+        driving_links.push_back(links_[i]);
+      }
+    }
+
+
+    for (std::shared_ptr<urdf::Link> driving_link : driving_links)
+    {
+      std::shared_ptr<urdf::Joint> driving_joint = driving_link->parent_joint;
+
+      // Derive 2D Position
+      std::vector<double> position = get_parent_joint_position(driving_link);
+      
+      // // Derive Steering Limits
+      double effort = driving_joint->limits->effort;
+      // // etc.
+
+      // Check if driving wheel is steerable
+      // Derive Steering Joint
+      // if (std::shared_ptr<urdf::Joint> steering_joint = get_steering_joint(driving_link)) {
+      if (std::shared_ptr<urdf::Joint> steering_joint = get_joint_in_leg(driving_link, ("STR"))) {
+        std::cout << "Steering Joint found: ";
+        // Compute steering angle and wheel speeds
+        std::cout << steering_joint->name << std::endl;
+
+      }
+
+    }
+
+}
+
+// TODO: Pass value instaed of shared_ptr
+std::vector<double> LocomotionMode::get_parent_joint_position(std::shared_ptr<urdf::Link> &link) {
+
+  // Copy link so we don't overwrite the original one
+  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
+
+  urdf::Pose child_pose;
+
+  while (tmp_link->parent_joint) {
+    urdf::Pose parent_pose = tmp_link->parent_joint->parent_to_joint_origin_transform;
+
+    child_pose = transpose_pose(parent_pose, child_pose);
+
+    tmp_link = tmp_link->getParent();
+  }
+  std::vector<double> position{child_pose.position.x, child_pose.position.y, child_pose.position.z};
+
+  return position;
+}
+
+urdf::Pose LocomotionMode::transpose_pose(urdf::Pose parent, urdf::Pose child)
+{
+  // Based on convention from Hendriks Summary
+  // TODO Transform orientation
+  urdf::Pose new_child;
+
+  double &e0 = parent.rotation.w;
+  double &e1 = parent.rotation.x;
+  double &e2 = parent.rotation.y;
+  double &e3 = parent.rotation.z;
+
+  double c11 = pow(e0, 2) + pow(e1, 2) - pow(e2, 2) - pow(e3, 2);
+  double c12 = 2 * e1 * e2 - 2 * e0 * e3;
+  double c13 = 2 * e0 * e2 + 2 * e1 * e3;
+  double c21 = 2 * e0 * e3 + 2 * e1 * e2;
+  double c22 = pow(e0, 2) - pow(e1, 2) + pow(e2, 2) - pow(e3, 2);
+  double c23 = 2 * e2 * e3 - 2 * e0 * e1;
+  double c31 = 2 * e1 * e3 - 2 * e0 * e2;
+  double c32 = 2 * e0 * e1 + 2 * e2 * e3;
+  double c33 = pow(e0, 2) - pow(e1, 2) - pow(e2, 2) + pow(e3, 2);
+
+  double &c14 = parent.position.x;
+  double &c24 = parent.position.y;
+  double &c34 = parent.position.z;
+
+  new_child.position.x = c11 * child.position.x + c12 * child.position.y + c13 * child.position.z + c14 * 1;
+  new_child.position.y = c21 * child.position.x + c22 * child.position.y + c23 * child.position.z + c24 * 1;
+  new_child.position.z = c31 * child.position.x + c32 * child.position.y + c33 * child.position.z + c34 * 1;
+
+  return new_child;
+}
+
+std::shared_ptr<urdf::Joint> LocomotionMode::get_joint_in_leg(std::shared_ptr<urdf::Link> &link, std::string name) {  
+  
+  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
+
+  while (tmp_link->parent_joint) {
+    if (tmp_link->parent_joint->name.find(name) != std::string::npos) return tmp_link->parent_joint;
+    tmp_link = tmp_link->getParent();
+  }
+}
+
+
+std::shared_ptr<urdf::Joint> LocomotionMode::get_steering_joint(std::shared_ptr<urdf::Link> &link) {  
+  return get_joint_in_leg(link, ("STR"));
+}
+
+bool LocomotionMode::is_steerable(std::shared_ptr<urdf::Link> &link) {
+  std::cout << "CHECKING IF WHEEL IS STEERABLE: " << std::endl;
+  
+  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
+  
+  std::string steering_name = ("STR");
+
+  while (tmp_link->parent_joint) {
+    if (tmp_link->parent_joint->name.find(steering_name) != std::string::npos) return true;
+    tmp_link = tmp_link->getParent();
+  }
+  std::cout << "NOT STEERABLE!" << std::endl;
+
+  return false;
+}
+
+void LocomotionMode::derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors) {
+  std::shared_ptr<urdf::Link> tmp_link = std::make_shared<urdf::Link>(*link);
+
+  std::cout << "LEG: " << std::endl;
+  
+  while (tmp_link->parent_joint) {
+    std::cout << "\tLink Name: " << tmp_link->name << std::endl;
+
+    leg_motors.push_back(tmp_link->parent_joint);
+    tmp_link = tmp_link->getParent();
+  }
+
 }
 
 
@@ -131,3 +265,5 @@ void LocomotionMode::joint_state_callback(const sensor_msgs::msg::JointState::Sh
   // Not ideal since it overrides all previous saved joint states even if they didn't change.
   current_joint_state_ = *msg;
 }
+
+// std::vector<double> LocomotionMode::get_joint_

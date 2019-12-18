@@ -76,6 +76,18 @@ class LocomotionMode : public rclcpp::Node
     std::vector<std::shared_ptr<urdf::Joint>> joints_;
     std::vector<std::shared_ptr<urdf::Link>> links_;
 
+    void derive_leg(std::shared_ptr<urdf::Link> &link, std::vector<std::shared_ptr<urdf::Joint>> leg_motors);
+    bool is_steerable(std::shared_ptr<urdf::Link> &link);
+
+    // Find first joint in leg, which name contains the specified name
+    std::shared_ptr<urdf::Joint> get_joint_in_leg(std::shared_ptr<urdf::Link> &link, std::string name);  
+    std::shared_ptr<urdf::Joint> get_steering_joint(std::shared_ptr<urdf::Link> &link);
+
+    std::vector<double> get_parent_joint_position(std::shared_ptr<urdf::Link> &link);
+
+    urdf::Pose transpose_pose(urdf::Pose parent, urdf::Pose child);
+
+
     // Parameters
     // string mode_name_;
 

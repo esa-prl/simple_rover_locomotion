@@ -11,5 +11,10 @@ ros2 topic pub /chatter std_msgs/String "data: Hello ROS Developers"
 ros2 topic pub -r 1 /simple_rover_locomotion/rover_velocities geometry_msgs/TwistStamped "{header: {stamp: {sec: 1, nanosec: 2}, frame_id: a frame},  twist: {linear: {x: 1.0, y: 2.0, z: 3.0}, angular:  {x: 1.0 ,y: 1.0 ,z: 1.0}}}"
 
 # Dummy Joint States
-ros2 topic pub -r 1 /joint_states sensor_msgs/JointState "{header: {stamp: {sec: 1, nanosec: 2}, frame_id: a frame}, name: {motor_1, motor_2}, position: {90, 180}, velocity: {}, effort: {}}"
+ros2 topic pub -r 1 /marta/joint_states sensor_msgs/JointState "{header: {stamp: {sec: 1576574448, nanosec: 2}, frame_id: a frame}, name: {joint_steer_front_left, joint_steer_front_right, weel_front_right}, position: {90, 180, 10}, velocity: {}, effort: {}}"
 
+# Rover Locomotion with path
+ros2 run simple_rover_locomotion simple_rover_locomotion_node --ros-args -p "urdf_model_path:=/path/hello/world"
+
+# Run URDF publisher from CLI
+ros2 run robot_state_publisher robot_state_publisher /home/freki/rover_wss/ros2_ws/src/rover_config/urdf/rover_dummy.urdf
