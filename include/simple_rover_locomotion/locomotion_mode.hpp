@@ -7,6 +7,8 @@
 #include <chrono>
 #include <memory>
 
+#include <string.h>
+
 #include <geometry_msgs/msg/twist.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -32,6 +34,15 @@ class LocomotionMode : public rclcpp::Node
         std::shared_ptr<urdf::Joint> joint; 
         std::shared_ptr<urdf::Link> link; 
         urdf::Pose global_pose;
+
+        sensor_msgs::msg::JointState joint_state;
+        Motor()
+        {
+            joint_state.name.resize(1);
+            joint_state.position.resize(1);
+            joint_state.velocity.resize(1);
+            joint_state.effort.resize(1);
+        }   
 
     };
 

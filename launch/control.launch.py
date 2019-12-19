@@ -33,7 +33,7 @@ def generate_launch_description():
 			node_namespace=namespace_,
 			node_executable='robot_state_publisher',
 			node_name='robot_state_publisher_node',
-			output='screen',
+			# output='screen',
 			# remappings=[
 			# 	('robot_description', 'urdf_model_path')
 			# ],

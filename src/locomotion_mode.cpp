@@ -103,16 +103,13 @@ void LocomotionMode::load_robot_model()
     }
     else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file.");
  
-    // TODO: make name parameters
+    // TODO: make names parameters that can be changed from launch file.
     std::string driving_name = ("DRV");
-    std::string steering_name = ("DRV");
-    std::string deployment_name = ("DRV");
-
-
+    std::string steering_name = ("STR");
+    std::string deployment_name = ("DEP");
 
     // Get Links
     model_->getLinks(links_);
-    RCLCPP_INFO(this->get_logger(), "Here 1");
 
     // Loop through all links
     for (std::shared_ptr<urdf::Link> link : links_) {
@@ -124,14 +121,11 @@ void LocomotionMode::load_robot_model()
         }     
       }
   
-      RCLCPP_INFO(this->get_logger(), "Here 2");
-
       // Get Driving links and create legs
       if (link->name.find(driving_name) != std::string::npos) {
         auto leg = std::make_shared<LocomotionMode::Leg>();
 
         init_motor(leg->driving_motor, link);
-        // leg->driving_motor = init_motor(link);
 
         legs_.push_back(leg);
       }
@@ -238,25 +232,29 @@ std::shared_ptr<urdf::Link> LocomotionMode::get_link_in_leg(std::shared_ptr<urdf
 // Save the joint states into the class
 void LocomotionMode::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-  // Not ideal since it overrides all previous saved joint states even if they didn't change.
-  // current_joint_state_ = *msg;
-
-  // for (size_t i; i<msg->name.size(); i++) {
-  //   // RCLCPP_INFO(this->get_logger(), "Message Motor Name %s.", msg->name[i]);
+  for (unsigned int i = 0; i < msg->name.size(); i++) {
     
-  //   for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
-  //     for (std::shared_ptr<Motor> motor : leg->motors){
-  //       if (msg->name == motor->joint->name) {
-  //         RCLCPP_INFO(this->get_logger(), "YAY");
-  //       }
-  //       else {
-  //         RCLCPP_INFO(this->get_logger(), "Message Motor Name %s.", msg->name[i].c_str());
-  //         RCLCPP_INFO(this->get_logger(), "Motor Name %s.", motor->joint->name);
+    for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
+    {
+      for (std::shared_ptr<Motor> motor : leg->motors){
 
-  //       }
+        if (motor->joint->name.compare(msg->name[i].c_str()) == 0) {
+          RCLCPP_DEBUG(this->get_logger(), "Received message for %s Motor.", msg->name[i].c_str());
+          
+          motor->joint_state.header = msg->header;
+          if (!msg->position.empty()) motor->joint_state.position[0] = msg->position[i];
+          else RCLCPP_WARN(this->get_logger(), "Received no Position for Motor %s", msg->name[i].c_str());
 
-  //     } 
+          if (!msg->velocity.empty()) motor->joint_state.velocity[0] = msg->velocity[i];
+          else RCLCPP_WARN(this->get_logger(), "Received no Veloctiy for Motor %s", msg->name[i].c_str());
+          
+          if (!msg->effort.empty())   motor->joint_state.effort[0]   = msg->effort[i];
+          else RCLCPP_WARN(this->get_logger(), "Received no Effort   for Motor %s", msg->name[i].c_str());
 
-  // }
+        }
+      } 
+
+    }
+  }
 
 }
