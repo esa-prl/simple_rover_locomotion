@@ -4,13 +4,11 @@ Changelog for package simple_rover_locomotion
 
 TODO
 ----
-* move URDF parsing to Simple Rover Locomotion?
-* go through TODO's in code
 * create MaRTA Xacro Model
-* implement generic rover library
+* Make sure steering works
+* go through TODO's in code
 * implement real services
 * Split Locomotion Mode Library from Simple Rover Locomotion
-* publish joint message
 
 NICE TO HAVE
 ------------
@@ -19,9 +17,13 @@ NICE TO HAVE
 KNOWN BUGS
 ----------
 * Message Definitions don't compile with Header variable...
+* robot_state_publisher still prints messages after removing output='screen' in launch file.
 
 w.i.p (2019-11-20)
 ------------------
+* reading out limits from urdf file works.
+* implement generic rover library
+* publish joint message
 * function to find transform of steering in respect to base.
 * load paths from config file
 * load xacro file

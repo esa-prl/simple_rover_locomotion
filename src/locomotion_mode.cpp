@@ -6,6 +6,10 @@ LocomotionMode::LocomotionMode(rclcpp::NodeOptions options)
       automatically_declare_parameters_from_overrides(true)),
   current_joint_state_(),
   model_(new urdf::Model()),
+  // TODO: Readout from Config file
+  driving_name_("DRV"),
+  steering_name_("STR"),
+  deployment_name_("DEP"),
   joints_(),
   links_()
 {
@@ -20,7 +24,7 @@ LocomotionMode::LocomotionMode(rclcpp::NodeOptions options)
   changelocomotionmode_service_ = this->create_service<simple_rover_locomotion::srv::ChangeLocomotionMode>("change_locomotion_mode", std::bind(&LocomotionMode::change_locomotion_mode, this, std::placeholders::_1, std::placeholders::_2));
 
   // Create Publishers
-  joints_publisher_ = this->create_publisher<simple_rover_locomotion::msg::JointCommandArray>("rover_joint_cmds", 10);
+  joint_command_publisher_ = this->create_publisher<rover_msgs::msg::JointCommandArray>("rover_joint_cmds", 10);
   
   // Create Subscriptions
   joint_state_subscription_ = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -103,11 +107,6 @@ void LocomotionMode::load_robot_model()
     }
     else RCLCPP_INFO(this->get_logger(), "Successfully parsed urdf file.");
  
-    // TODO: make names parameters that can be changed from launch file.
-    std::string driving_name = ("DRV");
-    std::string steering_name = ("STR");
-    std::string deployment_name = ("DEP");
-
     // Get Links
     model_->getLinks(links_);
 
@@ -122,7 +121,7 @@ void LocomotionMode::load_robot_model()
       }
   
       // Get Driving links and create legs
-      if (link->name.find(driving_name) != std::string::npos) {
+      if (link->name.find(driving_name_) != std::string::npos) {
         auto leg = std::make_shared<LocomotionMode::Leg>();
 
         init_motor(leg->driving_motor, link);
@@ -135,8 +134,8 @@ void LocomotionMode::load_robot_model()
     // Loop through all legs and find steering and deployment joints.
     for (std::shared_ptr<LocomotionMode::Leg> leg : legs_)
     {
-      init_motor(leg->steering_motor, get_link_in_leg(leg->driving_motor->link, steering_name));
-      init_motor(leg->deployment_motor, get_link_in_leg(leg->driving_motor->link, deployment_name));
+      init_motor(leg->steering_motor, get_link_in_leg(leg->driving_motor->link, steering_name_));
+      init_motor(leg->deployment_motor, get_link_in_leg(leg->driving_motor->link, deployment_name_));
     }
 
 

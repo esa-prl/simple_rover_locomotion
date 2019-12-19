@@ -8,13 +8,14 @@
 #include <memory>
 
 #include <string.h>
+// #include <math.h>
 
 #include <geometry_msgs/msg/twist.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
-#include <simple_rover_locomotion/msg/joint_command.hpp>
-#include <simple_rover_locomotion/msg/joint_command_array.hpp>
+#include <rover_msgs/msg/joint_command.hpp>
+#include <rover_msgs/msg/joint_command_array.hpp>
 
 #include <simple_rover_locomotion/srv/activate.hpp>
 #include <simple_rover_locomotion/srv/change_locomotion_mode.hpp>
@@ -42,8 +43,7 @@ class LocomotionMode : public rclcpp::Node
             joint_state.position.resize(1);
             joint_state.velocity.resize(1);
             joint_state.effort.resize(1);
-        }   
-
+        }
     };
 
     struct Leg
@@ -66,7 +66,7 @@ class LocomotionMode : public rclcpp::Node
 
   protected:
     // Joints Pulisher
-    rclcpp::Publisher<simple_rover_locomotion::msg::JointCommandArray>::SharedPtr joints_publisher_;
+    rclcpp::Publisher<rover_msgs::msg::JointCommandArray>::SharedPtr joint_command_publisher_;
 
     // Velocities Callback
     virtual void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
@@ -81,8 +81,8 @@ class LocomotionMode : public rclcpp::Node
     void load_robot_model();
 
     // Initialize Messages
-    // simple_rover_locomotion::msg::JointCommand joint_command_;
-    simple_rover_locomotion::msg::JointCommandArray joint_command_array_;
+    // rover_msgs::msg::JointCommand joint_command_;
+    rover_msgs::msg::JointCommandArray joint_command_array_;
 
     sensor_msgs::msg::JointState current_joint_state_;
 
@@ -115,6 +115,12 @@ class LocomotionMode : public rclcpp::Node
     std::string model_name_;
     std::string model_dir_;
     std::string model_path_;
+
+    std::string driving_name_;
+    std::string steering_name_;
+    std::string deployment_name_;
+
+
 
     std::vector<std::shared_ptr<urdf::Joint>> joints_;
     std::vector<std::shared_ptr<urdf::Link>> links_;

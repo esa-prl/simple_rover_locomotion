@@ -11,6 +11,7 @@ namespace_ = 'marta'
 def generate_launch_description():
 
 	# Load XACRO and parse to URDF
+	# TODO: use find_package()
 	xacro_model_dir  = "/home/freki/rover_wss/ros2_ws/src/rover_config/urdf/"
 	xacro_model_name = "rover_dummy.xacro"
 	xacro_model_path = os.path.join(xacro_model_dir, xacro_model_name)

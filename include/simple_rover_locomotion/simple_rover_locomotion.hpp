@@ -3,8 +3,6 @@
 
 #include <simple_rover_locomotion/locomotion_mode.hpp>
 
-#include <memory>
-
 
 // class SimpleRoverLocomotion : public rclcpp::Node
 class SimpleRoverLocomotion: public LocomotionMode

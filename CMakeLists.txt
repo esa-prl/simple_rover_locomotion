@@ -21,25 +21,20 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(urdf REQUIRED)
+# Custom
+find_package(rover_msgs REQUIRED)
 
 include_directories(include)
-
-
-set(msg_files
-  "msg/JointCommand.msg"
-  "msg/JointCommandArray.msg"
-  )
 
 set(srv_files
   "srv/Activate.srv"
   "srv/ChangeLocomotionMode.srv")
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
   ${srv_files}
   DEPENDENCIES std_msgs builtin_interfaces)
 
-set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "sensor_msgs" "std_srvs" "urdf")
+set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "std_msgs" "sensor_msgs" "std_srvs" "urdf" "rover_msgs")
 
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp src/locomotion_mode.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})
