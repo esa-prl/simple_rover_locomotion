@@ -4,7 +4,7 @@ Changelog for package simple_rover_locomotion
 
 TODO
 ----
-* create MaRTA Xacro Model
+* Switch to Abstract Model so people don't need to use URDF specific calls incase we want to later switch to the SDF model
 * Make sure steering works
 * go through TODO's in code
 * implement real services
@@ -21,6 +21,7 @@ KNOWN BUGS
 
 w.i.p (2019-11-20)
 ------------------
+* create MaRTA Xacro Model
 * reading out limits from urdf file works.
 * implement generic rover library
 * publish joint message
