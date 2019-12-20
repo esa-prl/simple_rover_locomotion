@@ -21,8 +21,11 @@ def generate_launch_description():
 	urdf_params = {'urdf_model_path': urdf_model_path}
 
 	tf_params = {'robot_description': urdf_model_path}
+	
+	gui_params = {'use_gui': True}
 
 	return LaunchDescription([
+		# Use this or the joint_state_publisher to publish dummy values for joints.
 		# Node(
 		# 	package='tf2_ros',
 		# 	node_executable='static_transform_publisher',
@@ -40,6 +43,17 @@ def generate_launch_description():
 			# ],
 			arguments=[urdf_model_path],			
 			emulate_tty=True
+		),
+		Node(
+			package='joint_state_publisher',
+			node_namespace=namespace_,
+			node_executable='joint_state_publisher',
+			remappings=[
+				('/robot_description', '/{}/robot_description'.format(namespace_))
+			],
+			node_name='joint_state_publisher_node',
+			output='screen',
+			parameters=[(gui_params)]
 		),
 		Node(
 			package='joy',
