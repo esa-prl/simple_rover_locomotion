@@ -16,6 +16,7 @@ NICE TO HAVE
 
 KNOWN BUGS
 ----------
+* robot_state_publisher does not publish tf frames even though it is receiving joint states.
 * Message Definitions don't compile with Header variable...
 * robot_state_publisher still prints messages after removing output='screen' in launch file.
 

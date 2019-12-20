@@ -22,7 +22,11 @@ def generate_launch_description():
 
 	tf_params = {'robot_description': urdf_model_path}
 	
-	gui_params = {'use_gui': True}
+	gui_params = {'use_gui': True,
+				  'rate':	 50,
+				  'publish_default_velocities': True,
+				  'publish_default_efforts': True,
+				  'robot_description': urdf_model_path}
 
 	return LaunchDescription([
 		# Use this or the joint_state_publisher to publish dummy values for joints.
@@ -41,6 +45,9 @@ def generate_launch_description():
 			# remappings=[
 			# 	('robot_description', 'urdf_model_path')
 			# ],
+			remappings=[
+				('/joint_states', '/{}/joint_states'.format(namespace_))
+			],
 			arguments=[urdf_model_path],			
 			emulate_tty=True
 		),
@@ -80,8 +87,8 @@ def generate_launch_description():
 			node_executable='simple_rover_locomotion_node',
 			node_name='simple_rover_locomotion_node',
 			output='screen',
-			parameters=[(urdf_params)],
-			emulate_tty=True
+			emulate_tty=True,
+			parameters=[(urdf_params)]
 		)
 		])
 

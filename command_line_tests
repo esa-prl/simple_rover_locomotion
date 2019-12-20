@@ -18,3 +18,6 @@ ros2 run simple_rover_locomotion simple_rover_locomotion_node --ros-args -p "urd
 
 # Run URDF publisher from CLI
 ros2 run robot_state_publisher robot_state_publisher /home/freki/rover_wss/ros2_ws/src/rover_config/urdf/rover_dummy.urdf
+
+# Joint State Publisher
+ros2 run joint_state_publisher joint_state_publisher --ros-args --remap /robot_description:=/marta/robot_description -p use_gui:=True

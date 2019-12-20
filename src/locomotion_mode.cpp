@@ -249,7 +249,6 @@ void LocomotionMode::joint_state_callback(const sensor_msgs::msg::JointState::Sh
           
           if (!msg->effort.empty())   motor->joint_state.effort[0]   = msg->effort[i];
           else RCLCPP_WARN(this->get_logger(), "Received no Effort   for Motor %s", msg->name[i].c_str());
-
         }
       } 
 
