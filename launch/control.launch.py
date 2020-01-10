@@ -13,7 +13,6 @@ namespace_ = 'marta'
 def generate_launch_description():
 
     # Load XACRO and parse to URDF
-    # TODO: use find_package()
     pkg_rover_config = get_package_share_directory('rover_config')
     xacro_model_name = "marta.xacro"
     xacro_model_path = os.path.join(pkg_rover_config, 'urdf', xacro_model_name)
