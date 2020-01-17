@@ -13,7 +13,6 @@ namespace_ = 'marta'
 def generate_launch_description():
 
     # Load XACRO and parse to URDF
-    # TODO: use find_package()
     pkg_rover_config = get_package_share_directory('rover_config')
     xacro_model_name = "marta.xacro"
     xacro_model_path = os.path.join(pkg_rover_config, 'urdf', xacro_model_name)
@@ -31,40 +30,6 @@ def generate_launch_description():
                   'robot_description': urdf_model_path}
 
     return LaunchDescription([
-        # Use this or the joint_state_publisher to publish dummy values for joints.
-        # Node(
-        # 	package='tf2_ros',
-        # 	node_executable='static_transform_publisher',
-        # 	node_name='link_back_left_broadcaster',
-        # 	arguments=['0 0 0 0 0 0 0 base_link link_back_left']
-        # ),
-        Node(
-            package='robot_state_publisher',
-            node_namespace=namespace_,
-            node_executable='robot_state_publisher',
-            node_name='robot_state_publisher_node',
-            # output='screen',
-            # remappings=[
-            # 	('robot_description', 'urdf_model_path')
-            # ],
-            remappings=[
-                            ('/joint_states', '/{}/joint_states'.format(namespace_))
-            ],
-            arguments=[urdf_model_path],
-            emulate_tty=True
-        ),
-        Node(
-            package='joint_state_publisher',
-            node_namespace=namespace_,
-            node_executable='joint_state_publisher',
-            remappings=[
-                    ('/robot_description',
-                     '/{}/robot_description'.format(namespace_))
-            ],
-            node_name='joint_state_publisher_node',
-            output='screen',
-            parameters=[(gui_params)]
-        ),
         Node(
             package='joy',
             node_namespace=namespace_,
