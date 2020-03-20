@@ -3,7 +3,7 @@
 <package format="3">
   <name>simple_rover_locomotion</name>
   <version>0.0.1</version>
-  <description>Package for computing rover locomotions using a 2D model.</description>
+  <description>Package for computing rover locomotions using a 2D model generated from a 3D urdf file.</description>
   <maintainer email="miro.voellmy@esa.int">Miro Voellmy</maintainer>
   <license>TODO: License declaration</license>
 
@@ -16,6 +16,8 @@
   <depend>rclcpp</depend>
   <depend>builtin_interfaces</depend>
   <depend>urdf</depend>
+  
+  <depend>locomotion_mode</depend>
   <depend>rover_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>

@@ -1,7 +1,7 @@
 #ifndef SIMPLE_ROVER_LOCOMOTION_H
 #define SIMPLE_ROVER_LOCOMOTION_H
 
-#include <simple_rover_locomotion/locomotion_mode.hpp>
+#include "locomotion_mode/locomotion_mode.hpp"
 
 
 // class SimpleRoverLocomotion : public rclcpp::Node
