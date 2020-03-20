@@ -66,7 +66,7 @@ Inherited from locomotion_mode.hpp base class. Computes the steering joint posit
 
 ## Bugs & Feature Requests
 
-Please report bugs and request features using the [Issue Tracker](https://github.com/ethz-asl/ros_best_practices/issues).
+Please report bugs and request features using the github issues.
 
 
 [ROS2]: https://index.ros.org/doc/ros2/
