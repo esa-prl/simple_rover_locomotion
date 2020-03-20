@@ -4,7 +4,6 @@
 #include "locomotion_mode/locomotion_mode.hpp"
 
 
-// class SimpleRoverLocomotion : public rclcpp::Node
 class SimpleRoverLocomotion: public LocomotionMode
 {
   public:
