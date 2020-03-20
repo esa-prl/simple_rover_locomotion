@@ -47,7 +47,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
     double beta_current = leg->steering_motor->joint_state.position[0];  // Current steering Angle
 
-    RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
+    // RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
 
     // check that each wheel is a driving and steering wheels
     // TODO: Could check more values, such as limits
