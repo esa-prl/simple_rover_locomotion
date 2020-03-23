@@ -4,7 +4,6 @@ Changelog for package simple_rover_locomotion
 
 TODO
 ----
-* Add README.
 * Switch to Abstract Model so people don't need to use URDF specific calls incase we want to later switch to the SDF model
 * go through TODO's in code
 * implement real services for activation and deactivation of locomotion mode

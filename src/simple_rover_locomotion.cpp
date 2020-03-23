@@ -22,8 +22,17 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   // TODO: Check if Joint State is older than a certain age and if send a warning/refuse execution accordingly
 
   // TODO: Add header
+  // Create JointCommandArray Msg
   rover_msgs::msg::JointCommandArray joint_command_array_msg;
 
+   // Create Steering Joint Message
+  rover_msgs::msg::JointCommand steering_msg;
+
+  // Create Driving Joint Message
+  rover_msgs::msg::JointCommand driving_msg;
+
+
+  // TODO: Switch this to pointer?
   double x_dot = msg->linear.x;
   double y_dot = msg->linear.y;
   double theta_dot = msg->angular.z;
@@ -68,69 +77,73 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
       }
 
       beta_offset = M_PI/2 - alpha;
-      
-
 
       // Compute steering angle from no sliding constraint.
       beta = atan2(- (sin(alpha) * y_dot + cos(alpha) * x_dot), (l * theta_dot + cos(alpha) * y_dot - sin(alpha) * x_dot));
 
-      // Shift steering angle to correct orientation depending on the wheel.
-      beta_steer = beta - beta_offset;
-      // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
+      // ONLY apply new steering if a command has been issued to keep the wheels in their current position.
+      // The velocity will be set to zero, making the rover stop.
+      if (abs(x_dot) != 0.0 ||
+          abs(y_dot) != 0.0 ||
+          abs(theta_dot) != 0.0)
+      {     
+          // Shift steering angle to correct orientation depending on the wheel.
+          beta_steer = beta - beta_offset;
+          // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
 
-      // Limit steering angle to +-360
-      beta_steer = fmod(beta_steer, 2*M_PI);
-      // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
 
-      // Limit steering angle to +-180
-      if (abs(beta_steer) >= M_PI) {
-        beta_steer = beta_steer - copysign(M_PI, beta_steer);
-        flip_velocity = !flip_velocity;
-        adjustment_count++;
+          // Limit steering angle to +-360
+          beta_steer = fmod(beta_steer, 2*M_PI);
+          // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
+
+          // Limit steering angle to +-180
+          if (abs(beta_steer) >= M_PI) {
+            beta_steer = beta_steer - copysign(M_PI, beta_steer);
+            flip_velocity = !flip_velocity;
+            adjustment_count++;
+          }
+          // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
+
+          // Check if Steering angle is within limits and adjust it accordingly
+          if (beta_steer <= lower_position_limit)
+          {
+            beta_steer = beta_steer + M_PI;
+            flip_velocity = !flip_velocity;
+            adjustment_count++;
+          }
+
+          if (beta_steer >= upper_position_limit)
+          {
+            beta_steer = beta_steer - M_PI;
+            flip_velocity = !flip_velocity;
+            adjustment_count++;
+          }
+          // printf("beta_steer lim    : %f\n",beta_steer*180/M_PI);
+
+          // Check if there are multiple ways to arrange wheels
+          if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
+             (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
+          {
+            // Set steering angle so it's the closest to the current steering angle
+            double beta_1 = beta_steer;                           // Option one is the computed steering angle
+            double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
+
+            double beta_1_diff = abs(beta_1 - beta_current);
+            double beta_2_diff = abs(beta_2 - beta_current);
+
+            if (beta_2_diff < beta_1_diff) {
+              beta_steer = beta_2;
+              adjustment_count++;
+              flip_velocity = !flip_velocity;
+            }
+          }
+
+          // TODO: Add header
+          steering_msg.name = leg->steering_motor->joint->name;
+          steering_msg.mode = ("POSITION");
+          steering_msg.value = beta_steer;
+
       }
-      // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
-
-      // Check if Steering angle is within limits and adjust it accordingly
-      if (beta_steer <= lower_position_limit)
-      {
-        beta_steer = beta_steer + M_PI;
-        flip_velocity = !flip_velocity;
-        adjustment_count++;
-      }
-
-      if (beta_steer >= upper_position_limit)
-      {
-        beta_steer = beta_steer - M_PI;
-        flip_velocity = !flip_velocity;
-        adjustment_count++;
-      }
-      // printf("beta_steer lim    : %f\n",beta_steer*180/M_PI);
-
-      // Check if there are multiple ways to arrange wheels
-      if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
-         (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
-      {
-        // Set steering angle so it's the closest to the current steering angle
-        double beta_1 = beta_steer;                           // Option one is the computed steering angle
-        double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
-
-        double beta_1_diff = abs(beta_1 - beta_current);
-        double beta_2_diff = abs(beta_2 - beta_current);
-
-        if (beta_2_diff < beta_1_diff) {
-          beta_steer = beta_2;
-          adjustment_count++;
-          flip_velocity = !flip_velocity;
-        }
-      }
-
-      // Create Steering Joint Message
-      rover_msgs::msg::JointCommand steering_msg;
-      // TODO: Add header
-      steering_msg.name = leg->steering_motor->joint->name;
-      steering_msg.mode = ("POSITION");
-      steering_msg.value = beta_steer;
-
 
       // Compute Driving Speed
       // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
@@ -138,9 +151,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
       if (flip_velocity) phi_dot = -phi_dot;
 
-
-      // Create Driving Joint Message
-      rover_msgs::msg::JointCommand driving_msg;
       // TODO: Add header
       driving_msg.name = leg->driving_motor->joint->name;
       driving_msg.mode = ("VELOCITY");
