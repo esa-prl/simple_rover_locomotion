@@ -1,6 +1,6 @@
 #include "simple_rover_locomotion/simple_rover_locomotion.hpp"
 
-SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options) : LocomotionMode(options)
+SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name) : LocomotionMode(options, node_name)
 {
   // Create Subscription and callback to derived class method
   this->initialize_subscribers();
@@ -86,7 +86,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
       if (abs(x_dot) != 0.0 ||
           abs(y_dot) != 0.0 ||
           abs(theta_dot) != 0.0)
-      {     
+      {
           // Shift steering angle to correct orientation depending on the wheel.
           beta_steer = beta - beta_offset;
           // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
@@ -177,7 +177,7 @@ int main(int argc, char * argv[])
 {
 rclcpp::NodeOptions options;
 rclcpp::init(argc, argv);
-rclcpp::spin(std::make_shared<SimpleRoverLocomotion>(options));
+rclcpp::spin(std::make_shared<SimpleRoverLocomotion>(options, "simple_rover_locomotion_node"));
 rclcpp::shutdown();
 return 0;
 }
