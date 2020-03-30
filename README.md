@@ -2,11 +2,11 @@
 
 ## Overview
 
-This packages computes the inverse kinematics (rover_velocities to joint_commands) for a rover with 6 steerable wheels.
+This packages computes the inverse kinematics (rover_velocities to joint_commands) for a rover with 6 steerable wheels. Ackerman, crabbing, spot turn and a combination of all these locomotion gates are possible by simply varying the desired linear and angular velocity.
 
 The 3D robot model is simplified (assumes bogie and deployment joints to be fixed) and treated as a 2D model.
 
-**Keywords:** example, package, template
+**Keywords:** locomotion, package, crab, ackerman, spot-turn
 
 ### License
 
@@ -52,22 +52,15 @@ To run and test the node in context check out the [marta_launch](https://github.
 
 ### simple_rover_locomotion_node
 
-Inherited from locomotion_mode.hpp base class. Computes the steering joint positions and the driving joint velocities given a robot model and a desired rover velocitiy.
+Inherited from `locomotion_mode.hpp` base class. Computes the steering joint positions and the driving joint velocities given a robot model and a desired rover velocitiy.
 
 #### Subscribed Topics
 
-* **`/rover_motion_cmd`** ([geometry_msgs/twist])
-
-	Desired linear and angular velocity of rover.
-
-#### Published Topics
-* **`/rover_joint_cmds`** ([rover_msgs/joint_commmand_array])
-
+See [locomotion_mode](https://github.com/esa-prl/locomotion_mode) for topics and services used.
 
 ## Bugs & Feature Requests
 
 Please report bugs and request features using the github issues.
-
 
 [ROS2]: https://index.ros.org/doc/ros2/
 [geometry_msgs/twist]: https://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
