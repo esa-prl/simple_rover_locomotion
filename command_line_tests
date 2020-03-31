@@ -21,3 +21,6 @@ ros2 run robot_state_publisher robot_state_publisher /home/freki/rover_wss/ros2_
 
 # Joint State Publisher
 ros2 run joint_state_publisher joint_state_publisher --ros-args --remap /robot_description:=/marta/robot_description -p use_gui:=True
+
+# Disable Locomotion Mode
+ros2 service call /marta/simple_rover_locomotion_node/disable std_srvs/Trigger
