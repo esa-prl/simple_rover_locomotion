@@ -5,8 +5,14 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
   // Create Subscription and callback to derived class method
   this->initialize_subscribers();
 
-  RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started");
+  RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started.");
 
+}
+
+bool SimpleRoverLocomotion::enable(){
+  RCLCPP_INFO(this->get_logger(), "ENABLING SimpleRoverLocomotion using a custom transition");
+
+  return transition_to_robot_pose("NONE");
 }
 
 void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg)

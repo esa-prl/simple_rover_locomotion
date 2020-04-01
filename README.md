@@ -29,7 +29,7 @@ The Simple Rover Locomotion package has been tested under [ROS2] eloquent and Ub
 
 #### Building
 
-To build from source, clone the latest version from this repository into your catkin workspace and compile the package using
+To build from source, clone the latest version from this repository into your ros2 workspace and compile the package using
 
 	cd ros2_ws/src
 	git clone https://github.com/esa-prl/simple_rover_locomotion.git
