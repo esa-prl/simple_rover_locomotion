@@ -3,7 +3,9 @@
 SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name) : LocomotionMode(options, node_name)
 {
   // Create Subscription and callback to derived class method
-  this->initialize_subscribers();
+  if(this->enabled_){
+    this->enable_subscribers();
+  }
 
   RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started.");
 

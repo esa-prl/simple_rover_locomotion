@@ -6,6 +6,7 @@ TODO
 ----
 * go through TODO's in code
 * implement real services for activation and deactivation of locomotion mode
+* potentially introduce mode_name
 
 NICE TO HAVE
 ------------
