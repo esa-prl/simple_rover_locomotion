@@ -95,62 +95,63 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
           abs(y_dot) != 0.0 ||
           abs(theta_dot) != 0.0)
       {
-          // Shift steering angle to correct orientation depending on the wheel.
-          beta_steer = beta - beta_offset;
-          // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
+        // Shift steering angle to correct orientation depending on the wheel.
+        beta_steer = beta - beta_offset;
+        // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
 
 
-          // Limit steering angle to +-360
-          beta_steer = fmod(beta_steer, 2*M_PI);
-          // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
+        // Limit steering angle to +-360
+        beta_steer = fmod(beta_steer, 2*M_PI);
+        // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
 
-          // Limit steering angle to +-180
-          if (abs(beta_steer) >= M_PI) {
-            beta_steer = beta_steer - copysign(M_PI, beta_steer);
-            flip_velocity = !flip_velocity;
+        // Limit steering angle to +-180
+        if (abs(beta_steer) >= M_PI) {
+          beta_steer = beta_steer - copysign(M_PI, beta_steer);
+          flip_velocity = !flip_velocity;
+          adjustment_count++;
+        }
+        // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
+
+        // Check if Steering angle is within limits and adjust it accordingly
+        if (beta_steer <= lower_position_limit)
+        {
+          beta_steer = beta_steer + M_PI;
+          flip_velocity = !flip_velocity;
+          adjustment_count++;
+        }
+
+        if (beta_steer >= upper_position_limit)
+        {
+          beta_steer = beta_steer - M_PI;
+          flip_velocity = !flip_velocity;
+          adjustment_count++;
+        }
+        // printf("beta_steer lim    : %f\n",beta_steer*180/M_PI);
+
+        // Check if there are multiple ways to arrange wheels
+        if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
+           (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
+        {
+          // Set steering angle so it's the closest to the current steering angle
+          double beta_1 = beta_steer;                           // Option one is the computed steering angle
+          double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
+
+          double beta_1_diff = abs(beta_1 - beta_current);
+          double beta_2_diff = abs(beta_2 - beta_current);
+
+          if (beta_2_diff < beta_1_diff) {
+            beta_steer = beta_2;
             adjustment_count++;
-          }
-          // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
-
-          // Check if Steering angle is within limits and adjust it accordingly
-          if (beta_steer <= lower_position_limit)
-          {
-            beta_steer = beta_steer + M_PI;
             flip_velocity = !flip_velocity;
-            adjustment_count++;
           }
+        }
 
-          if (beta_steer >= upper_position_limit)
-          {
-            beta_steer = beta_steer - M_PI;
-            flip_velocity = !flip_velocity;
-            adjustment_count++;
-          }
-          // printf("beta_steer lim    : %f\n",beta_steer*180/M_PI);
+        // TODO: Add header
+        steering_msg.name = leg->steering_motor->joint->name;
+        steering_msg.mode = ("POSITION");
+        steering_msg.value = beta_steer;
 
-          // Check if there are multiple ways to arrange wheels
-          if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
-             (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
-          {
-            // Set steering angle so it's the closest to the current steering angle
-            double beta_1 = beta_steer;                           // Option one is the computed steering angle
-            double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
-
-            double beta_1_diff = abs(beta_1 - beta_current);
-            double beta_2_diff = abs(beta_2 - beta_current);
-
-            if (beta_2_diff < beta_1_diff) {
-              beta_steer = beta_2;
-              adjustment_count++;
-              flip_velocity = !flip_velocity;
-            }
-          }
-
-          // TODO: Add header
-          steering_msg.name = leg->steering_motor->joint->name;
-          steering_msg.mode = ("POSITION");
-          steering_msg.value = beta_steer;
-
+        joint_command_array_msg.joint_command_array.push_back(steering_msg);
       }
 
       // Compute Driving Speed
@@ -164,7 +165,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
       driving_msg.mode = ("VELOCITY");
       driving_msg.value = phi_dot;
 
-      joint_command_array_msg.joint_command_array.push_back(steering_msg);
       joint_command_array_msg.joint_command_array.push_back(driving_msg);
 
     }
