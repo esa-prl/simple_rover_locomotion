@@ -91,6 +91,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
       // ONLY apply new steering if a command has been issued to keep the wheels in their current position.
       // The velocity will be set to zero, making the rover stop.
+      // TODO: Could also send the current joint position as set values so the steering stops.
       if (abs(x_dot) != 0.0 ||
           abs(y_dot) != 0.0 ||
           abs(theta_dot) != 0.0)

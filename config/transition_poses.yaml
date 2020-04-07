@@ -1,0 +1,15 @@
+simple_rover_locomotion_node:
+    ros__parameters:
+        enable_pose_name: "NONE"
+        disable_pose_name: "stowed"
+
+        # Leg names corresponding to the steering (str) and deployment (dep) positions:
+        leg_names: ['LF', 'RF', 'LC', 'RC', 'LR', 'RR']
+
+        # Rover poses saved as joint positions in [rad]
+        straight:
+          str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+          dep_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        stowed:
+          str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+          dep_positions: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57]
