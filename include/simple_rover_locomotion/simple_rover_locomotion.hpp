@@ -11,7 +11,7 @@ class SimpleRoverLocomotion: public LocomotionMode
 
   private:
     void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
-    bool enable();
+    // bool enable();
 };
 
 #endif

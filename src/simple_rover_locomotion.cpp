@@ -11,11 +11,15 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 
 }
 
-bool SimpleRoverLocomotion::enable(){
-  RCLCPP_INFO(this->get_logger(), "ENABLING SimpleRoverLocomotion using a custom transition");
-
-  return transition_to_robot_pose("NONE");
-}
+// See the example bellow how to add a custom transition
+// bool SimpleRoverLocomotion::enable(){
+//   // Testing of custom transition
+//   RCLCPP_INFO(this->get_logger(), "ENABLING SimpleRoverLocomotion using a custom transition");
+//   // Transition via a hard coded pose
+//   return transition_to_robot_pose("straight");
+//   // Transition via the pose specified in the config file.
+//   return transition_to_robot_pose(enable_pose_name_));
+// }
 
 void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
