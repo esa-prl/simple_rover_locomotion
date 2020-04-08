@@ -3,10 +3,10 @@ simple_rover_locomotion_node:
         enable_pose_name: "NONE"
         disable_pose_name: "stowed"
 
-        # Names corresponding to the steering (str) and deployment (dep) positions:
-        # Must be different lists, since not all rovers have only steerable wheels.
-        str_names: ['LF', 'RF', 'LC', 'RC', 'LR', 'RR']
-        dep_names: ['LF', 'RF', 'LC', 'RC', 'LR', 'RR']
+        # Maps the names to the steering (str) and deployment (dep) positions:
+        # Must be two different vectors, since sometimes not all wheels are steerable
+        str_mapping: ['LF', 'RF', 'LC', 'RC', 'LR', 'RR']
+        dep_mapping: ['LF', 'RF', 'LC', 'RC', 'LR', 'RR']
 
         # Rover poses saved as joint positions in [rad]
         poses:
@@ -17,5 +17,8 @@ simple_rover_locomotion_node:
             str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             dep_positions: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57]
           point_turn:
+            str_positions: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+            dep_positions: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57]
+          low:
             str_positions: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
             dep_positions: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57]
