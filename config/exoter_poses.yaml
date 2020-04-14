@@ -1,24 +1,24 @@
 simple_rover_locomotion_node:
     ros__parameters:
-        enable_pose_name: "straight"
+        enable_pose_name: "point_turn"
         disable_pose_name: "stowed"
 
         # Maps the names to the steering (str) and deployment (dep) positions:
         # Must be two different vectors, since sometimes not all wheels are steerable
-        str_mapping: ['LF', 'RF', 'LM', 'RM', 'LR', 'RR']
+        str_mapping: ['LF', 'RF', 'LR', 'RR']
         dep_mapping: ['LF', 'RF', 'LM', 'RM', 'LR', 'RR']
 
         # Rover poses saved as joint positions in [rad]
         poses:
           stowed:
-            str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            str_positions: [0.0, 0.0, 0.0, 0.0]
             dep_positions: [1.2, 1.2, -1.2, -1.2, -1.2, -1.2]
           straight:
-            str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            str_positions: [0.0, 0.0, 0.0, 0.0]
             dep_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           point_turn:
-            str_positions: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-            dep_positions: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57]
+            str_positions: [0.7, 0.7, 0.7, 0.7]
+            dep_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           low:
-            str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            str_positions: [0.0, 0.0, 0.0, 0.0]
             dep_positions: [-0.5, -0.5, 0.7, 0.7, 0.7, 0.7]

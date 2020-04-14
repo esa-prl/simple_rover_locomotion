@@ -1,6 +1,9 @@
 #include "simple_rover_locomotion/simple_rover_locomotion.hpp"
 
-SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name) : LocomotionMode(options, node_name)
+SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name) :
+LocomotionMode(options, node_name),
+// Assuming all rovers are limited except if they show to be unlimited.
+fully_steerable_(false)
 {
   // Create Subscription and callback to derived class method
   if(this->enabled_){
@@ -9,6 +12,62 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 
   RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started.");
 
+  if (!check_steering_limitations()) {
+    RCLCPP_ERROR(this->get_logger(), "%s not able to work, since the robot model has an invalid steering configuration.", node_name.c_str());
+  }
+
+}
+
+
+bool SimpleRoverLocomotion::check_steering_limitations() {
+  std::vector<std::shared_ptr<LocomotionMode::Leg>> non_steerable_legs;
+
+  // Finds the non_steerable legs and saves them.
+  for (auto leg : legs_) {
+    if (leg->steering_motor->joint->type != urdf::Joint::REVOLUTE &&
+          leg->steering_motor->joint->type != urdf::Joint::CONTINUOUS) {
+      non_steerable_legs.push_back(leg);
+    }
+  }
+
+  // Checks how many legs are non steerable and sets the centre of rotation accortingly
+  if (non_steerable_legs.size() == 0)
+  {
+    RCLCPP_WARN(this->get_logger(), "ALL WHEELS ARE STEERABLE");
+    centre_of_rotation_x = 0;
+    centre_of_rotation_y = 0;
+    // Overwrite limited limited steerability
+    fully_steerable_ = true;
+  }
+  else if (non_steerable_legs.size() == 1)
+  {
+    centre_of_rotation_x = non_steerable_legs[0]->steering_motor->global_pose.position.x;
+    // Can be any value. 0 makes the most sense.
+    centre_of_rotation_y = 0;
+  }
+  else if (non_steerable_legs.size() == 2) {
+    RCLCPP_WARN(this->get_logger(), "NUMBER OF NON STEERABLE LEGS: %u", non_steerable_legs.size()); 
+    // In case there are multiple fixed wheels their axes must align
+    // TODO: Check in which direction the wheels point in their 0 position and apply that to the input limitation etc.
+    // Check if their axes align with a margin of 1 cm
+    if (abs(non_steerable_legs[0]->steering_motor->global_pose.position.x
+      - non_steerable_legs[1]->steering_motor->global_pose.position.x) > 0.01) {
+    RCLCPP_ERROR(this->get_logger(), "Non steerable wheels don't align.");
+    return false;
+    }
+    // Since they align set the centre of rotation between them.
+    centre_of_rotation_x = (non_steerable_legs[0]->steering_motor->global_pose.position.x
+                          + non_steerable_legs[1]->steering_motor->global_pose.position.x)/2;
+    // This should be 0 in most cases
+    centre_of_rotation_y = (non_steerable_legs[0]->steering_motor->global_pose.position.y
+                          + non_steerable_legs[1]->steering_motor->global_pose.position.y)/2;
+  }
+  else {
+    RCLCPP_ERROR(this->get_logger(), "MORE THAN TWO NON STEERABLE LEGS");
+    return false;
+  }
+
+  return true;
 }
 
 // See the example bellow how to add a custom transition
@@ -48,6 +107,9 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   double x_dot = msg->linear.x;
   double y_dot = msg->linear.y;
   double theta_dot = msg->angular.z;
+  
+  // Checks if steering is limited and sets y-velocity to 0 if that's the case.
+  if (!fully_steerable_) y_dot = 0;
 
   // set the wheel steering
   for (std::shared_ptr<LocomotionMode::Leg> leg : legs_) {
@@ -70,14 +132,18 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
     // RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
 
-    // check that each wheel is a driving and steering wheels
-    // TODO: Could check more values, such as limits
-    if (leg->steering_motor->joint && leg->driving_motor->joint) {
+    // Checks that each wheel is a driving wheel
+    if ((leg->driving_motor->joint->type == urdf::Joint::REVOLUTE ||
+          leg->driving_motor->joint->type == urdf::Joint::CONTINUOUS)) {
 
-      alpha = atan2(leg->steering_motor->global_pose.position.y, leg->steering_motor->global_pose.position.x);
-      l = sqrt( pow(leg->steering_motor->global_pose.position.x, 2.0) + pow(leg->steering_motor->global_pose.position.x, 2.0));
+      // Compute offset position in case the steering capabilities are limited.
+      double offset_str_position_x = leg->steering_motor->global_pose.position.x - centre_of_rotation_x;
+      double offset_str_position_y = leg->steering_motor->global_pose.position.y - centre_of_rotation_y;
+
+      alpha = atan2(offset_str_position_y, offset_str_position_x);
+      l = sqrt( pow(offset_str_position_x, 2.0) + pow(offset_str_position_x, 2.0));
+
       // TODO: Could implment this into main LocomotionMode class and add a field wheel diameter. Also make sure the wheel link is a cylinder.
-
       if (leg->driving_motor->link->collision->geometry->type == urdf::Geometry::CYLINDER) {
         std::shared_ptr<urdf::Cylinder> cyl = std::static_pointer_cast<urdf::Cylinder>(leg->driving_motor->link->collision->geometry);
         r = cyl->radius;
@@ -131,14 +197,13 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
           flip_velocity = !flip_velocity;
           adjustment_count++;
         }
-        // printf("beta_steer lim    : %f\n",beta_steer*180/M_PI);
 
-        // Check if there are multiple ways to arrange wheels
+        // Checks if there are multiple ways to arrange wheels
         if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
            (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
         {
-          // Set steering angle so it's the closest to the current steering angle
-          double beta_1 = beta_steer;                           // Option one is the computed steering angle
+          // Sets steering angle so it's the closest to the current steering angle
+          double beta_1 = beta_steer;                                 // Option one is the computed steering angle
           double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
 
           double beta_1_diff = abs(beta_1 - beta_current);
@@ -159,7 +224,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
         joint_command_array_msg.joint_command_array.push_back(steering_msg);
       }
 
-      // Compute Driving Speed
+      // Computes Driving Speed
       // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
       phi_dot = (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot)/r;
 
