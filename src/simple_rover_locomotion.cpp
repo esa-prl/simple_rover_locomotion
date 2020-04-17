@@ -231,7 +231,8 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
       }
 
       // Only compute the driving velocity if the wheel is close enough to the target position
-      RCLCPP_WARN(this->get_logger(), "BETA: %f, BETA_CURR: %f", beta, beta_current);
+      // RCLCPP_WARN(this->get_logger(), "BETA: %f, BETA_CURR: %f", beta, beta_current);
+      RCLCPP_WARN(this->get_logger(), "\t ABS: %f", abs(beta - beta_current));
       if (steering_in_progress_ || abs(beta - beta_current) > steering_margin_)
       {
         steering_in_progress_ = true;
