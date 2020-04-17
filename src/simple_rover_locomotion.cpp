@@ -3,7 +3,9 @@
 SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name) :
 LocomotionMode(options, node_name),
 // Assuming all rovers are limited except if they show to be unlimited.
-fully_steerable_(false)
+fully_steerable_(false),
+steering_margin_(7),
+steering_in_progress_(false)
 {
   // Create Subscription and callback to derived class method
   if(this->enabled_){
@@ -96,11 +98,15 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   // Create JointCommandArray Msg
   rover_msgs::msg::JointCommandArray joint_command_array_msg;
 
+  rover_msgs::msg::JointCommandArray driving_command_array_msg;
+
    // Create Steering Joint Message
   rover_msgs::msg::JointCommand steering_msg;
 
   // Create Driving Joint Message
   rover_msgs::msg::JointCommand driving_msg;
+
+  rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
 
 
   // TODO: Switch this to pointer?
@@ -216,7 +222,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
           }
         }
 
-        // TODO: Add header
+        steering_msg.header.stamp = clock->now(); 
         steering_msg.name = leg->steering_motor->joint->name;
         steering_msg.mode = ("POSITION");
         steering_msg.value = beta_steer;
@@ -224,18 +230,26 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
         joint_command_array_msg.joint_command_array.push_back(steering_msg);
       }
 
-      // Computes Driving Speed
-      // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
-      phi_dot = (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot)/r;
+      // Only compute the driving velocity if the wheel is close enough to the target position
+      RCLCPP_WARN(this->get_logger(), "BETA: %f, BETA_CURR: %f", beta, beta_current);
+      if (steering_in_progress_ || abs(beta - beta_current) > steering_margin_)
+      {
+        steering_in_progress_ = true;
+      }
+      else
+      {
+        // Computes Driving Speed
+        // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
+        phi_dot = (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot)/r;
 
-      if (flip_velocity) phi_dot = -phi_dot;
+        if (flip_velocity) phi_dot = -phi_dot;
 
-      // TODO: Add header
-      driving_msg.name = leg->driving_motor->joint->name;
-      driving_msg.mode = ("VELOCITY");
-      driving_msg.value = phi_dot;
+        driving_msg.name = leg->driving_motor->joint->name;
+        driving_msg.mode = ("VELOCITY");
+        driving_msg.value = phi_dot;
 
-      joint_command_array_msg.joint_command_array.push_back(driving_msg);
+        driving_command_array_msg.joint_command_array.push_back(driving_msg);
+      }
 
     }
     else
@@ -246,8 +260,16 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
   }
 
+
+  joint_command_array_msg.header.stamp = clock->now(); 
+
   // Publish Message
   joint_command_publisher_->publish(joint_command_array_msg);
+
+  // The driving commands are only published if there is no steering in progress.
+  if (!steering_in_progress_) joint_command_publisher_->publish(driving_command_array_msg);
+
+  steering_in_progress_ = false;
 }
 
 

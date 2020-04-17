@@ -2,7 +2,7 @@
 #define SIMPLE_ROVER_LOCOMOTION_H
 
 #include "locomotion_mode/locomotion_mode.hpp"
-
+#include "rclcpp/clock.hpp"
 
 class SimpleRoverLocomotion: public LocomotionMode
 {
@@ -13,7 +13,12 @@ class SimpleRoverLocomotion: public LocomotionMode
   	// Position of the centre of rotation in x and y
   	double centre_of_rotation_x;
   	double centre_of_rotation_y;
+  	// 'True' if all wheels are steerable
   	bool fully_steerable_;
+
+  	// Margin in which the driving wheels start driving. [rad]
+  	double steering_margin_;
+  	bool steering_in_progress_;
 
     void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
     bool check_steering_limitations();

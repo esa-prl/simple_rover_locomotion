@@ -5,7 +5,6 @@ Changelog for package simple_rover_locomotion
 TODO
 ----
 * go through TODO's in code
-* implement real services for activation and deactivation of locomotion mode
 * potentially introduce mode_name
 * Wait until the wheels are close to desired position before sending the velocities for driving.
 
