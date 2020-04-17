@@ -4,7 +4,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 LocomotionMode(options, node_name),
 // Assuming all rovers are limited except if they show to be unlimited.
 fully_steerable_(false),
-steering_margin_(7),
+steering_margin_(20*3.1514/180),
 steering_in_progress_(false)
 {
   // Create Subscription and callback to derived class method
@@ -113,12 +113,24 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   double x_dot = msg->linear.x;
   double y_dot = msg->linear.y;
   double theta_dot = msg->angular.z;
-  
+
   // Checks if steering is limited and sets y-velocity to 0 if that's the case.
-  if (!fully_steerable_) y_dot = 0;
+  if (!fully_steerable_) y_dot = 0.0;
+
+  // Checks if the rover shall be stopped.
+  bool stop_rover = false;
+
+  if (abs(x_dot) == 0.0 &&
+      abs(y_dot) == 0.0 &&
+      abs(theta_dot) == 0.0)
+  {
+    stop_rover = true;
+  }
+
 
   // set the wheel steering
   for (std::shared_ptr<LocomotionMode::Leg> leg : legs_) {
+
     double alpha;         // [rad] Angle of wheel steering center to origin
     double l;             // [m] Radial Distance from Wheel Steering center to Origin
     double beta_offset;   // [rad] Static offset to calculate steering angle from computed angle
@@ -138,9 +150,11 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
 
     // RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
 
-    // Checks that each wheel is a driving wheel
-    if ((leg->driving_motor->joint->type == urdf::Joint::REVOLUTE ||
-          leg->driving_motor->joint->type == urdf::Joint::CONTINUOUS)) {
+    if (stop_rover) {
+      beta_steer = beta_current;
+      phi_dot = 0.0;
+    }
+    else {
 
       // Compute offset position in case the steering capabilities are limited.
       double offset_str_position_x = leg->steering_motor->global_pose.position.x - centre_of_rotation_x;
@@ -163,79 +177,63 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
       beta_offset = M_PI/2 - alpha;
 
       // Compute steering angle from no sliding constraint.
-      beta = atan2(- (sin(alpha) * y_dot + cos(alpha) * x_dot), (l * theta_dot + cos(alpha) * y_dot - sin(alpha) * x_dot));
+      beta = atan2(- (sin(alpha) * y_dot + cos(alpha) * x_dot), (l * theta_dot + cos(alpha) * y_dot - sin(alpha) * x_dot));      
+    
+      // Shift steering angle to correct orientation depending on the wheel.
+      beta_steer = beta - beta_offset;
+      // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
 
-      // ONLY apply new steering if a command has been issued to keep the wheels in their current position.
-      // The velocity will be set to zero, making the rover stop.
-      // TODO: Could also send the current joint position as set values so the steering stops.
-      if (abs(x_dot) != 0.0 ||
-          abs(y_dot) != 0.0 ||
-          abs(theta_dot) != 0.0)
+
+      // Limit steering angle to +-360
+      beta_steer = fmod(beta_steer, 2*M_PI);
+      // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
+
+      // Limit steering angle to +-180
+      if (abs(beta_steer) >= M_PI) {
+        beta_steer = beta_steer - copysign(M_PI, beta_steer);
+        flip_velocity = !flip_velocity;
+        adjustment_count++;
+      }
+      // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
+
+      // Check if Steering angle is within limits and adjust it accordingly
+      if (beta_steer <= lower_position_limit)
       {
-        // Shift steering angle to correct orientation depending on the wheel.
-        beta_steer = beta - beta_offset;
-        // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
-
-
-        // Limit steering angle to +-360
-        beta_steer = fmod(beta_steer, 2*M_PI);
-        // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
-
-        // Limit steering angle to +-180
-        if (abs(beta_steer) >= M_PI) {
-          beta_steer = beta_steer - copysign(M_PI, beta_steer);
-          flip_velocity = !flip_velocity;
-          adjustment_count++;
-        }
-        // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
-
-        // Check if Steering angle is within limits and adjust it accordingly
-        if (beta_steer <= lower_position_limit)
-        {
-          beta_steer = beta_steer + M_PI;
-          flip_velocity = !flip_velocity;
-          adjustment_count++;
-        }
-
-        if (beta_steer >= upper_position_limit)
-        {
-          beta_steer = beta_steer - M_PI;
-          flip_velocity = !flip_velocity;
-          adjustment_count++;
-        }
-
-        // Checks if there are multiple ways to arrange wheels
-        if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
-           (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
-        {
-          // Sets steering angle so it's the closest to the current steering angle
-          double beta_1 = beta_steer;                                 // Option one is the computed steering angle
-          double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
-
-          double beta_1_diff = abs(beta_1 - beta_current);
-          double beta_2_diff = abs(beta_2 - beta_current);
-
-          if (beta_2_diff < beta_1_diff) {
-            beta_steer = beta_2;
-            adjustment_count++;
-            flip_velocity = !flip_velocity;
-          }
-        }
-
-        steering_msg.header.stamp = clock->now(); 
-        steering_msg.name = leg->steering_motor->joint->name;
-        steering_msg.mode = ("POSITION");
-        steering_msg.value = beta_steer;
-
-        joint_command_array_msg.joint_command_array.push_back(steering_msg);
+        beta_steer = beta_steer + M_PI;
+        flip_velocity = !flip_velocity;
+        adjustment_count++;
       }
 
-      // Only compute the driving velocity if the wheel is close enough to the target position
-      // RCLCPP_WARN(this->get_logger(), "BETA: %f, BETA_CURR: %f", beta, beta_current);
-      RCLCPP_WARN(this->get_logger(), "\t ABS: %f", abs(beta - beta_current));
-      if (steering_in_progress_ || abs(beta - beta_current) > steering_margin_)
+      if (beta_steer >= upper_position_limit)
+      {
+        beta_steer = beta_steer - M_PI;
+        flip_velocity = !flip_velocity;
+        adjustment_count++;
+      }
+
+      // Checks if there are multiple ways to arrange wheels
+      if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
+         (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
+      {
+        // Sets steering angle so it's the closest to the current steering angle
+        double beta_1 = beta_steer;                                 // Option one is the computed steering angle
+        double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
+
+        double beta_1_diff = abs(beta_1 - beta_current);
+        double beta_2_diff = abs(beta_2 - beta_current);
+
+        if (beta_2_diff < beta_1_diff) {
+          beta_steer = beta_2;
+          adjustment_count++;
+          flip_velocity = !flip_velocity;
+        }
+      }
+
+      // Only computes the driving velocity if the wheel is close enough to the target position
+      if (steering_in_progress_ || abs(beta_steer - beta_current) > steering_margin_)
       {
         steering_in_progress_ = true;
+        phi_dot = 0.0;
       }
       else
       {
@@ -244,31 +242,45 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
         phi_dot = (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot)/r;
 
         if (flip_velocity) phi_dot = -phi_dot;
-
-        driving_msg.name = leg->driving_motor->joint->name;
-        driving_msg.mode = ("VELOCITY");
-        driving_msg.value = phi_dot;
-
-        driving_command_array_msg.joint_command_array.push_back(driving_msg);
       }
-
     }
-    else
-    {
-      RCLCPP_WARN(this->get_logger(), "Non steerable wheels are not yet supported.");
 
-    }
+    // Fills Steering Message
+    steering_msg.header.stamp = clock->now(); 
+    steering_msg.name = leg->steering_motor->joint->name;
+    steering_msg.mode = ("POSITION");
+    steering_msg.value = beta_steer;
+
+    joint_command_array_msg.joint_command_array.push_back(steering_msg);
+  
+    // Fills Driving Message
+    driving_msg.header.stamp = clock->now(); 
+    driving_msg.name = leg->driving_motor->joint->name;
+    driving_msg.mode = ("VELOCITY");
+    driving_msg.value = phi_dot;
+
+    driving_command_array_msg.joint_command_array.push_back(driving_msg);
 
   }
 
+  // The driving command must be set to zero if ANY steering position has not been reached yet.
+  if (steering_in_progress_) {
+    for (unsigned i = 0; i < driving_command_array_msg.joint_command_array.size(); i++) {
+      driving_command_array_msg.joint_command_array[i].value = 0.0;
+    }
+  }
 
-  joint_command_array_msg.header.stamp = clock->now(); 
+  // Add driving to other joint commands
+  joint_command_array_msg.joint_command_array.insert(
+    joint_command_array_msg.joint_command_array.end(),
+    driving_command_array_msg.joint_command_array.begin(),
+    driving_command_array_msg.joint_command_array.end());
 
+  // joint_command_array_msg.header.stamp = clock->now(); 
+
+  // Gazebo does not like to receive the steering and driving commands in two different messages.
   // Publish Message
   joint_command_publisher_->publish(joint_command_array_msg);
-
-  // The driving commands are only published if there is no steering in progress.
-  if (!steering_in_progress_) joint_command_publisher_->publish(driving_command_array_msg);
 
   steering_in_progress_ = false;
 }
