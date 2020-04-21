@@ -54,8 +54,8 @@ bool SimpleRoverLocomotion::check_steering_limitations() {
     // Check if their axes align with a margin of 1 cm
     if (abs(non_steerable_legs[0]->steering_motor->global_pose.position.x
       - non_steerable_legs[1]->steering_motor->global_pose.position.x) > 0.01) {
-    RCLCPP_ERROR(this->get_logger(), "Non steerable wheels don't align.");
-    return false;
+      RCLCPP_ERROR(this->get_logger(), "Non steerable wheels don't align.");
+      return false;
     }
     // Since they align set the centre of rotation between them.
     centre_of_rotation_x = (non_steerable_legs[0]->steering_motor->global_pose.position.x
@@ -115,7 +115,9 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
   double theta_dot = msg->angular.z;
 
   // Checks if steering is limited and sets y-velocity to 0 if that's the case.
-  if (!fully_steerable_) y_dot = 0.0;
+  if (!fully_steerable_) {
+    y_dot = 0.0;
+  }
 
   // Checks if the rover shall be stopped.
   bool stop_rover = false;
@@ -241,7 +243,9 @@ void SimpleRoverLocomotion::rover_velocities_callback(const geometry_msgs::msg::
         // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
         phi_dot = (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot)/r;
 
-        if (flip_velocity) phi_dot = -phi_dot;
+        if (flip_velocity) {
+          phi_dot = -phi_dot;
+        }
       }
     }
 

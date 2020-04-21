@@ -6,7 +6,6 @@ TODO
 ----
 * go through TODO's in code
 * potentially introduce mode_name
-* Wait until the wheels are close to desired position before sending the velocities for driving.
 
 NICE TO HAVE
 ------------
@@ -17,6 +16,7 @@ KNOWN BUGS
 
 0.0.1 (unreleased)
 ------------------
+* Waits until the wheels are close to desired position before sending the velocities for driving.
 * Split Locomotion Mode Library from Simple Rover Locomotion
 * Fixed steering
 * Fixed driving directions
