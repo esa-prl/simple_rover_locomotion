@@ -17,7 +17,6 @@ steering_in_progress_(false)
   if (!check_steering_limitations()) {
     RCLCPP_ERROR(this->get_logger(), "%s not able to work, since the robot model has an invalid steering configuration.", node_name.c_str());
   }
-
 }
 
 
