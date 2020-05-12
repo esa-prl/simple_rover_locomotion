@@ -4,7 +4,8 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 : LocomotionMode(options, node_name),
 // Assuming all rovers are limited except if they show to be unlimited.
   fully_steerable_(false),
-  steering_margin_(20 * 3.1514 / 180),
+  // TODO: Load Steering Margin from Config
+  steering_margin_(360 * 3.1514 / 180),
   steering_in_progress_(false)
 {
   // Create Subscription and callback to derived class method
