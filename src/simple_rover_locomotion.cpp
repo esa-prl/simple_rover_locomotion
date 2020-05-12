@@ -275,7 +275,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
       driving_command_array_msg.joint_command_array[i].value = 0.0;
     }
   }
-
+  
   // Add driving to other joint commands
   joint_command_array_msg.joint_command_array.insert(
     joint_command_array_msg.joint_command_array.end(),

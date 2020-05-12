@@ -20,9 +20,13 @@ set(dependencies
 add_executable(simple_rover_locomotion_node src/simple_rover_locomotion.cpp)
 ament_target_dependencies(simple_rover_locomotion_node ${dependencies})
 
+
 install(TARGETS
   simple_rover_locomotion_node
   DESTINATION lib/${PROJECT_NAME})
+
+# Install config files
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
 # install the launch directory
 install(DIRECTORY

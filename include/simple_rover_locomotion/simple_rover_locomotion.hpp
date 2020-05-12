@@ -16,7 +16,7 @@ private:
   // 'True' if all wheels are steerable
   bool fully_steerable_;
 
-  // Margin in which the driving wheels start driving. [rad]
+  // Margin in whicc the driving wheels start driving. [rad]
   double steering_margin_;
   bool steering_in_progress_;
 
