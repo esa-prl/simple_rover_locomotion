@@ -12,7 +12,7 @@ simple_rover_locomotion_node:
         poses:
           stowed:
             str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-            dep_positions: [1.2, 1.2, -1.2, -1.2, -1.2, -1.2]
+            dep_positions: [1.57, 1.57, 1.57, 1.57, -1.57, -1.57]
           straight:
             str_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             dep_positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
