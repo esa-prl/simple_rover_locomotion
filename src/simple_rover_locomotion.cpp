@@ -96,7 +96,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   // It's important to check if the message was already initialized
   // TODO: Check if Joint State is older than a certain age and if send a warning/refuse execution accordingly
 
-  // TODO: Add header
   // Create JointCommandArray Msg
   rover_msgs::msg::JointCommandArray joint_command_array_msg;
 
