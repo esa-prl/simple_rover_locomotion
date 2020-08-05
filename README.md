@@ -16,7 +16,7 @@ The 3D robot model is simplified (assumes bogie and deployment joints to be fixe
 Affiliation: [Planetary Robotic Laboratory](http://www.esa.int/Enabling_Support/Space_Engineering_Technology/Planetary_Robotics_Laboratory)<br />
 Maintainer: Miro Voellmy, miro.voellmy@esa.int**
 
-The Simple Rover Locomotion package has been tested under [ROS2] eloquent and Ubuntu 18.04. This is research code, expect that it changes often and any fitness for a particular purpose is disclaimed.
+The Simple Rover Locomotion package has been tested under [ROS2] Foxy Fitzroy and Ubuntu 20.04. This is research code, expect that it changes often and any fitness for a particular purpose is disclaimed.
 
 ## Installation
 
