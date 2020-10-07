@@ -5,7 +5,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 // Assuming all rovers are limited except if they show to be unlimited.
   fully_steerable_(false),
   // TODO: Load Steering Margin from Config
-  steering_margin_(360 * 3.1514 / 180),
+  steering_margin_(360 * M_PI / 180),
   steering_in_progress_(false)
 {
   // Create Subscription and callback to derived class method
@@ -39,14 +39,14 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   // Checks how many legs are non steerable and sets the centre of rotation accortingly
   if (non_steerable_legs.size() == 0) {
     RCLCPP_WARN(this->get_logger(), "ALL WHEELS ARE STEERABLE");
-    centre_of_rotation_x = 0;
-    centre_of_rotation_y = 0;
+    centre_of_rotation_x_ = 0;
+    centre_of_rotation_y_ = 0;
     // Overwrite limited limited steerability
     fully_steerable_ = true;
   } else if (non_steerable_legs.size() == 1) {
-    centre_of_rotation_x = non_steerable_legs[0]->steering_motor->global_pose.position.x;
+    centre_of_rotation_x_ = non_steerable_legs[0]->steering_motor->global_pose.position.x;
     // Can be any value. 0 makes the most sense.
-    centre_of_rotation_y = 0;
+    centre_of_rotation_y_ = 0;
   } else if (non_steerable_legs.size() == 2) {
     RCLCPP_WARN(this->get_logger(), "NUMBER OF NON STEERABLE LEGS: %u", non_steerable_legs.size());
     // In case there are multiple fixed wheels their axes must align
@@ -60,10 +60,10 @@ bool SimpleRoverLocomotion::check_steering_limitations()
       return false;
     }
     // Since they align set the centre of rotation between them.
-    centre_of_rotation_x = (non_steerable_legs[0]->steering_motor->global_pose.position.x +
+    centre_of_rotation_x_ = (non_steerable_legs[0]->steering_motor->global_pose.position.x +
       non_steerable_legs[1]->steering_motor->global_pose.position.x) / 2;
     // This should be 0 in most cases
-    centre_of_rotation_y = (non_steerable_legs[0]->steering_motor->global_pose.position.y +
+    centre_of_rotation_y_ = (non_steerable_legs[0]->steering_motor->global_pose.position.y +
       non_steerable_legs[1]->steering_motor->global_pose.position.y) / 2;
   } else {
     RCLCPP_ERROR(this->get_logger(), "MORE THAN TWO NON STEERABLE LEGS");
@@ -73,7 +73,9 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   return true;
 }
 
-// See the example bellow how to add a custom transition
+// See the example bellow how to add a custom transition.
+// Don't forget to define it in the .hpp file as.
+//
 // bool SimpleRoverLocomotion::enable(){
 //   // Testing of custom transition
 //   RCLCPP_INFO(this->get_logger(), "ENABLING SimpleRoverLocomotion using a custom transition");
@@ -159,9 +161,9 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
       // Compute offset position in case the steering capabilities are limited.
       double offset_str_position_x = leg->steering_motor->global_pose.position.x -
-        centre_of_rotation_x;
+        centre_of_rotation_x_;
       double offset_str_position_y = leg->steering_motor->global_pose.position.y -
-        centre_of_rotation_y;
+        centre_of_rotation_y_;
 
       alpha = atan2(offset_str_position_y, offset_str_position_x);
       l = sqrt(pow(offset_str_position_x, 2.0) + pow(offset_str_position_y, 2.0));

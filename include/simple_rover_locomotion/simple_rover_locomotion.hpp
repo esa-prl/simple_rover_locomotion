@@ -11,8 +11,8 @@ public:
 
 private:
   // Position of the centre of rotation in x and y
-  double centre_of_rotation_x;
-  double centre_of_rotation_y;
+  double centre_of_rotation_x_;
+  double centre_of_rotation_y_;
   // 'True' if all wheels are steerable
   bool fully_steerable_;
 
@@ -22,7 +22,7 @@ private:
 
   void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
   bool check_steering_limitations();
-  // bool enable();
+  
 };
 
 #endif
