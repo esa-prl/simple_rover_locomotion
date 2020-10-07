@@ -2,7 +2,7 @@
 
 ## Overview
 
-This packages computes the inverse kinematics (rover_velocities to joint_commands) for a rover with 6 steerable wheels. Ackerman, crabbing, spot turn and a combination of all these locomotion gates are possible by simply varying the desired linear and angular velocity.
+This packages computes the inverse kinematics (rover_velocities to joint_commands) for a rover with 6 steerable wheels. Ackermann, crabbing, spot turn and a combination of all these locomotion gaits are possible by simply varying the desired linear and angular velocity.
 
 The 3D robot model is simplified (assumes bogie and deployment joints to be fixed) and treated as a 2D model.
 
@@ -52,7 +52,7 @@ To run and test the node in context check out the [marta_launch](https://github.
 
 ### simple_rover_locomotion_node
 
-Inherited from `locomotion_mode.hpp` base class. Computes the steering joint positions and the driving joint velocities given a robot model and a desired rover velocitiy.
+Inherited from `locomotion_mode.hpp` base class. Computes the steering joint positions and the driving joint velocities given a robot model and a desired rover velocity.
 
 #### Subscribed Topics
 

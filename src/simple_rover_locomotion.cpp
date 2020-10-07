@@ -110,7 +110,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
 
 
-  // TODO: Switch this to pointer?
   double x_dot = msg->linear.x;
   double y_dot = msg->linear.y;
   double theta_dot = msg->angular.z;
@@ -205,14 +204,12 @@ void SimpleRoverLocomotion::rover_velocities_callback(
       // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
 
       // Check if Steering angle is within limits and adjust it accordingly
-      if (beta_steer <= lower_position_limit) {
-        beta_steer = beta_steer + M_PI;
+      if (beta_steer < lower_position_limit) {
+        beta_steer += M_PI;
         flip_velocity = !flip_velocity;
         adjustment_count++;
-      }
-
-      if (beta_steer >= upper_position_limit) {
-        beta_steer = beta_steer - M_PI;
+      } else if (beta_steer > upper_position_limit) {
+        beta_steer -= M_PI;
         flip_velocity = !flip_velocity;
         adjustment_count++;
       }
