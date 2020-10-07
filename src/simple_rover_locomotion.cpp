@@ -116,12 +116,12 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   double y_dot = msg->linear.y;
   double theta_dot = msg->angular.z;
 
-  // Checks if steering is limited and sets y-velocity to 0 if that's the case.
+  // Check if steering is limited and sets y-velocity to 0 if that's the case.
   if (!fully_steerable_) {
     y_dot = 0.0;
   }
 
-  // Checks if the rover shall be stopped.
+  // Check if the rover shall be stopped.
   bool stop_rover = false;
 
   if (abs(x_dot) == 0.0 &&
@@ -132,7 +132,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   }
 
 
-  // set the wheel steering
+  // Set the wheel steering
   for (std::shared_ptr<LocomotionMode::Leg> leg : legs_) {
 
     double alpha;         // [rad] Angle of wheel steering center to origin
@@ -216,11 +216,11 @@ void SimpleRoverLocomotion::rover_velocities_callback(
         adjustment_count++;
       }
 
-      // Checks if there are multiple ways to arrange wheels
+      // Check if there are multiple ways to arrange wheels
       if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
         (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
       {
-        // Sets steering angle so it's the closest to the current steering angle
+        // Set steering angle so it's the closest to the current steering angle
         double beta_1 = beta_steer;                                 // Option one is the computed steering angle
         double beta_2 = beta_steer - copysign(M_PI, beta_steer);    // Option two is the computed steering angle flipped 180 deg over the 0 degree point so it stays within the position limit
 
@@ -234,12 +234,16 @@ void SimpleRoverLocomotion::rover_velocities_callback(
         }
       }
 
-      // Only computes the driving velocity if the wheel is close enough to the target position
-      if (steering_in_progress_ || abs(beta_steer - beta_current) > steering_margin_) {
-        steering_in_progress_ = true;
+      // Check if wheel is not yet close to the target position
+      if (abs(beta_steer - beta_current) > steering_margin_) {
+          steering_in_progress_ = true;
+      }
+
+      // No need to compute the driving velocity if steering is in progress
+      if (steering_in_progress_) {
         phi_dot = 0.0;
       } else {
-        // Computes Driving Speed
+        // Compute Driving Speed
         // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
         phi_dot =
           (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot) / r;
@@ -250,7 +254,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
       }
     }
 
-    // Fills Steering Message
+    // Fill Steering Message
     steering_msg.header.stamp = clock->now();
     steering_msg.name = leg->steering_motor->joint->name;
     steering_msg.mode = ("POSITION");
@@ -258,7 +262,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
     joint_command_array_msg.joint_command_array.push_back(steering_msg);
 
-    // Fills Driving Message
+    // Fill Driving Message
     driving_msg.header.stamp = clock->now();
     driving_msg.name = leg->driving_motor->joint->name;
     driving_msg.mode = ("VELOCITY");
@@ -270,18 +274,18 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
   // The driving command must be set to zero if ANY steering position has not been reached yet.
   if (steering_in_progress_) {
-    for (unsigned i = 0; i < driving_command_array_msg.joint_command_array.size(); i++) {
-      driving_command_array_msg.joint_command_array[i].value = 0.0;
+    for (auto & driving_command : driving_command_array_msg.joint_command_array) {
+      driving_command.value = 0.0;
     }
   }
-  
+
   // Add driving to other joint commands
   joint_command_array_msg.joint_command_array.insert(
     joint_command_array_msg.joint_command_array.end(),
     driving_command_array_msg.joint_command_array.begin(),
     driving_command_array_msg.joint_command_array.end());
 
-  // joint_command_array_msg.header.stamp = clock->now();
+  joint_command_array_msg.header.stamp = clock->now();
 
   // Gazebo does not like to receive the steering and driving commands in two different messages.
   // Publish Message
