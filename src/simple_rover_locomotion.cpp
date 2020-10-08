@@ -8,13 +8,6 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
   steering_margin_(360 * M_PI / 180),
   steering_in_progress_(false)
 {
-  // Create Subscription and callback to derived class method
-  if (this->enabled_) {
-    this->enable_subscribers();
-  }
-
-  RCLCPP_INFO(this->get_logger(), "SimpleRoverLocomotion started.");
-
   if (!check_steering_limitations()) {
     RCLCPP_ERROR(
       this->get_logger(), "%s not able to work, since the robot model has an invalid steering configuration.",
@@ -148,8 +141,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
     bool flip_velocity = false;
 
-    int adjustment_count = 0;
-
     double beta_current = leg->steering_motor->joint_state.position[0];  // Current steering Angle
 
     // RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
@@ -173,10 +164,12 @@ void SimpleRoverLocomotion::rover_velocities_callback(
         std::shared_ptr<urdf::Cylinder> cyl = std::static_pointer_cast<urdf::Cylinder>(
           leg->driving_motor->link->collision->geometry);
         r = cyl->radius;
-      } else {
+        // r = leg->driving_motor->link->collision->geometry->radius;
+      }
+      else {
         r = 0.05;
         RCLCPP_WARN(
-          this->get_logger(), "Wheel Link: %s collision geometry should be a cylinder! Wheel radius set to %f [m]", leg->driving_motor->link->name,
+          this->get_logger(), "Wheel Link: %s collision geometry should be a cylinder! Wheel radius set to hardcoded value of %f [m]", leg->driving_motor->link->name,
           r);
       }
 
@@ -190,30 +183,27 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
       // Shift steering angle to correct orientation depending on the wheel.
       beta_steer = beta - beta_offset;
-      // printf("beta_steer        : %f\n",beta_steer*180/M_PI);
+      RCLCPP_DEBUG(this->get_logger(),"beta_steer        : %f", beta_steer*180/M_PI);
 
 
       // Limit steering angle to +-360
       beta_steer = fmod(beta_steer, 2 * M_PI);
-      // printf("beta_steer 360    : %f\n",beta_steer*180/M_PI);
+      RCLCPP_DEBUG(this->get_logger(),"beta_steer 360    : %f", beta_steer*180/M_PI);
 
       // Limit steering angle to +-180
       if (abs(beta_steer) >= M_PI) {
-        beta_steer = beta_steer - copysign(M_PI, beta_steer);
-        flip_velocity = !flip_velocity;
-        adjustment_count++;
+        beta_steer = beta_steer - copysign(2 * M_PI, beta_steer);
       }
-      // printf("beta_steer 180    : %f\n",beta_steer*180/M_PI);
+      RCLCPP_DEBUG(this->get_logger(),"beta_steer 180    : %f", beta_steer*180/M_PI);
 
       // Check if Steering angle is within limits and adjust it accordingly
       if (beta_steer < lower_position_limit) {
         beta_steer += M_PI;
         flip_velocity = !flip_velocity;
-        adjustment_count++;
-      } else if (beta_steer > upper_position_limit) {
+      }
+      else if (beta_steer > upper_position_limit) {
         beta_steer -= M_PI;
         flip_velocity = !flip_velocity;
-        adjustment_count++;
       }
 
       // Check if there are multiple ways to arrange wheels
@@ -229,7 +219,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
         if (beta_2_diff < beta_1_diff) {
           beta_steer = beta_2;
-          adjustment_count++;
           flip_velocity = !flip_velocity;
         }
       }
