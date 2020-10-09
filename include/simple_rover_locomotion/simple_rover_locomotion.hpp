@@ -3,25 +3,28 @@
 
 #include "locomotion_mode/locomotion_mode.hpp"
 
-class SimpleRoverLocomotion : public LocomotionMode
-{
-public:
-  SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name);
+namespace locomotion_mode {  
 
-private:
-  // Position of the centre of rotation in x and y
-  double centre_of_rotation_x_;
-  double centre_of_rotation_y_;
-  // 'True' if all wheels are steerable
-  bool fully_steerable_;
+  class SimpleRoverLocomotion : public LocomotionMode
+  {
+  public:
+    SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name);
 
-  // Margin in whicc the driving wheels start driving. [rad]
-  double steering_margin_;
-  bool steering_in_progress_;
+  private:
+    // Position of the centre of rotation in x and y
+    double centre_of_rotation_x_;
+    double centre_of_rotation_y_;
+    // 'True' if all wheels are steerable
+    bool fully_steerable_;
 
-  void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
-  bool check_steering_limitations();
-  
-};
+    // Margin in whicc the driving wheels start driving. [rad]
+    double steering_margin_;
+    bool steering_in_progress_;
+
+    void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
+    bool check_steering_limitations();
+    
+  };
+}
 
 #endif
