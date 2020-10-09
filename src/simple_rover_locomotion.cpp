@@ -18,7 +18,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 
 bool SimpleRoverLocomotion::check_steering_limitations()
 {
-  std::vector<std::shared_ptr<LocomotionMode::Leg>> non_steerable_legs;
+  std::vector<std::shared_ptr<Rover::Leg>> non_steerable_legs;
 
   // Finds the non_steerable legs and saves them.
   for (auto leg : legs_) {
@@ -130,7 +130,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
 
   // Set the wheel steering
-  for (std::shared_ptr<LocomotionMode::Leg> leg : legs_) {
+  for (auto leg : legs_) {
 
     double alpha;         // [rad] Angle of wheel steering center to origin
     double l;             // [m] Radial Distance from Wheel Steering center to Origin
