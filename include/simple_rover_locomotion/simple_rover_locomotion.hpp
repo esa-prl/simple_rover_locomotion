@@ -2,7 +2,6 @@
 #define SIMPLE_ROVER_LOCOMOTION_H
 
 #include "locomotion_mode/locomotion_mode.hpp"
-#include "rclcpp/clock.hpp"
 
 class SimpleRoverLocomotion : public LocomotionMode
 {
