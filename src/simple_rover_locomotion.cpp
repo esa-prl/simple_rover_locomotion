@@ -18,7 +18,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 
 bool SimpleRoverLocomotion::check_steering_limitations()
 {
-  std::vector<std::shared_ptr<Rover::Leg>> non_steerable_legs;
+  std::vector<std::shared_ptr<RoverNS::Leg>> non_steerable_legs;
 
   // Finds the non_steerable legs and saves them.
   for (auto leg : legs_) {
@@ -30,7 +30,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 
   // Checks how many legs are non steerable and sets the centre of rotation accortingly
   if (non_steerable_legs.size() == 0) {
-    RCLCPP_WARN(this->get_logger(), "ALL WHEELS ARE STEERABLE");
+    RCLCPP_INFO(this->get_logger(), "All wheels are steerable");
     centre_of_rotation_x_ = 0;
     centre_of_rotation_y_ = 0;
     // Overwrite limited limited steerability
@@ -44,7 +44,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   }
   else if (non_steerable_legs.size() == 2)
   {
-    RCLCPP_WARN(this->get_logger(), "NUMBER OF NON STEERABLE LEGS: %u", non_steerable_legs.size());
+    RCLCPP_WARN(this->get_logger(), "Number of non steerable wheels: %u", non_steerable_legs.size());
     // In case there are multiple fixed wheels their axes must align
     // TODO: Check in which direction the wheels point in their 0 position and apply that to the input limitation etc.
     // Check if their axes align with a margin of 1 cm
