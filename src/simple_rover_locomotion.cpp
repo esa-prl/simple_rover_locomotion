@@ -21,7 +21,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 
 bool SimpleRoverLocomotion::check_steering_limitations()
 {
-  std::vector<std::shared_ptr<Leg>> non_steerable_legs;
+  std::vector<std::shared_ptr<Rover::Leg>> non_steerable_legs;
 
   // Finds the non_steerable legs and saves them.
   for (auto leg : rover_->legs_) {
