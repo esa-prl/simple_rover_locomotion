@@ -175,19 +175,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
       alpha = atan2(offset_str_position_y, offset_str_position_x);
       l = sqrt(pow(offset_str_position_x, 2.0) + pow(offset_str_position_y, 2.0));
-
-      // TODO: Could implment this into main LocomotionMode class and add a field wheel diameter. Also make sure the wheel link is a cylinder.
-      if (leg->driving_motor->link->collision->geometry->type == urdf::Geometry::CYLINDER) {
-        std::shared_ptr<urdf::Cylinder> cyl = std::static_pointer_cast<urdf::Cylinder>(
-          leg->driving_motor->link->collision->geometry);
-        r = cyl->radius;
-      }
-      else {
-        r = 0.05;
-        RCLCPP_WARN(
-          this->get_logger(), "Wheel Link: %s collision geometry should be a cylinder! Wheel radius set to hardcoded value of %f [m]", leg->driving_motor->link->name,
-          r);
-      }
+      r = leg->wheel_diameter / 2;
 
       beta_offset = M_PI / 2 - alpha;
 
