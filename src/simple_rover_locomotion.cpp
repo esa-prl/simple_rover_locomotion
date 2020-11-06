@@ -25,6 +25,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 
   // Finds the non_steerable legs and saves them.
   for (auto leg : rover_->legs_) {
+    // Check if steering motor joint is populated
     if (!leg->steering_motor->joint)
     {
       non_steerable_legs.push_back(leg);
