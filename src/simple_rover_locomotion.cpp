@@ -75,7 +75,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 }
 
 // See the example bellow how to add a custom transition.
-// Don't forget to define it in the .hpp file as.
+// Don't forget to define it in the .hpp file as well.
 //
 // bool SimpleRoverLocomotion::enable(){
 //   // Testing of custom transition
@@ -150,7 +150,7 @@ void SimpleRoverLocomotion::rover_velocities_callback(
     double upper_position_limit;
 
     if (leg->steering_motor->joint) {
-      beta_current = leg->steering_motor->joint_state.position[0];
+      beta_current = leg->steering_motor->current_state->position;
       lower_position_limit = leg->steering_motor->joint->limits->lower;
       upper_position_limit = leg->steering_motor->joint->limits->upper;    
     }
