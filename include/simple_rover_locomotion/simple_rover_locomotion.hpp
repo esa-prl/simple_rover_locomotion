@@ -24,6 +24,9 @@ namespace locomotion_mode {
     void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
     // Checks if all wheels are steerable. At most, two wheels can be non steerable, otherwise it fails.
     bool check_steering_limitations();
+
+    // Uncomment for enable overwrite example
+    // bool enabling_sequence();
     
   };
 }

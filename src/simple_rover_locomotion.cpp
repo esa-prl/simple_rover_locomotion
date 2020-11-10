@@ -75,15 +75,14 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 }
 
 // See the example bellow how to add a custom transition.
-// Don't forget to define it in the .hpp file as well.
-//
-// bool SimpleRoverLocomotion::enable(){
+// // Don't forget to define it in the .hpp file as well.
+// bool SimpleRoverLocomotion::enabling_sequence(){
 //   // Testing of custom transition
 //   RCLCPP_INFO(this->get_logger(), "ENABLING SimpleRoverLocomotion using a custom transition");
 //   // Transition via a hard coded pose
 //   return transition_to_robot_pose("straight");
 //   // Transition via the pose specified in the config file.
-//   return transition_to_robot_pose(enable_pose_name_));
+//   // return transition_to_robot_pose(enable_pose_name_));
 // }
 
 void SimpleRoverLocomotion::rover_velocities_callback(
