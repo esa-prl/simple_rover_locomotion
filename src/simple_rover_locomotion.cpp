@@ -96,19 +96,12 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   RCLCPP_DEBUG(this->get_logger(), "Y_angular: %f.", msg->angular.y);
   RCLCPP_DEBUG(this->get_logger(), "Z_angular: %f.", msg->angular.z);
 
-  // It's important to check if the message was already initialized
-  // TODO: Check if Joint State is older than a certain age and if send a warning/refuse execution accordingly
-
+  // Create Joint Command Message
+  rover_msgs::msg::JointCommand joint_commmad_msg;
   // Create JointCommandArray Msg
   rover_msgs::msg::JointCommandArray joint_command_array_msg;
 
   rover_msgs::msg::JointCommandArray driving_command_array_msg;
-
-  // Create Steering Joint Message
-  rover_msgs::msg::JointCommand steering_msg;
-
-  // Create Driving Joint Message
-  rover_msgs::msg::JointCommand driving_msg;
 
   rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
 
@@ -256,21 +249,21 @@ void SimpleRoverLocomotion::rover_velocities_callback(
     if (leg->steering_motor->joint) {
 
       // Fill Steering Message
-      steering_msg.header.stamp = clock->now();
-      steering_msg.name = leg->steering_motor->joint->name;
-      steering_msg.mode = ("POSITION");
-      steering_msg.value = beta_steer;
+      joint_commmad_msg.header.stamp = clock->now();
+      joint_commmad_msg.name = leg->steering_motor->joint->name;
+      joint_commmad_msg.mode = ("POSITION");
+      joint_commmad_msg.value = beta_steer;
 
-      joint_command_array_msg.joint_command_array.push_back(steering_msg);
+      joint_command_array_msg.joint_command_array.push_back(joint_commmad_msg);
     }
 
     // Fill Driving Message
-    driving_msg.header.stamp = clock->now();
-    driving_msg.name = leg->driving_motor->joint->name;
-    driving_msg.mode = ("VELOCITY");
-    driving_msg.value = phi_dot;
+    joint_commmad_msg.header.stamp = clock->now();
+    joint_commmad_msg.name = leg->driving_motor->joint->name;
+    joint_commmad_msg.mode = ("VELOCITY");
+    joint_commmad_msg.value = phi_dot;
 
-    driving_command_array_msg.joint_command_array.push_back(driving_msg);
+    driving_command_array_msg.joint_command_array.push_back(joint_commmad_msg);
 
   }
 
