@@ -85,7 +85,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 //   // return transition_to_robot_pose(enable_pose_name_));
 // }
 
-void SimpleRoverLocomotion::rover_velocities_callback(
+ rover_msgs::msg::JointCommandArray SimpleRoverLocomotion::compute_joint_commands(
   const geometry_msgs::msg::Twist::SharedPtr msg)
 {
   RCLCPP_DEBUG(this->get_logger(), "X_linear: %f.", msg->linear.x);
@@ -103,7 +103,6 @@ void SimpleRoverLocomotion::rover_velocities_callback(
   rover_msgs::msg::JointCommandArray driving_command_array_msg;
 
   rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
-
 
   double x_dot = msg->linear.x;
   double y_dot = msg->linear.y;
@@ -281,11 +280,11 @@ void SimpleRoverLocomotion::rover_velocities_callback(
 
   joint_command_array_msg.header.stamp = clock->now();
 
+  steering_in_progress_ = false;
+
   // Gazebo does not like to receive the steering and driving commands in two different messages.
   // Publish Message
-  joint_command_publisher_->publish(joint_command_array_msg);
-
-  steering_in_progress_ = false;
+  return joint_command_array_msg;
 }
 
 

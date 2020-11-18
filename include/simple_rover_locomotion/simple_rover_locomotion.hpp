@@ -21,7 +21,9 @@ namespace locomotion_mode {
     double steering_margin_;
     bool steering_in_progress_;
 
-    void rover_velocities_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
+    rover_msgs::msg::JointCommandArray compute_joint_commands(
+      const geometry_msgs::msg::Twist::SharedPtr msg);
+
     // Checks if all wheels are steerable. At most, two wheels can be non steerable, otherwise it fails.
     bool check_steering_limitations();
 
