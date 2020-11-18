@@ -1,5 +1,4 @@
-#ifndef SIMPLE_ROVER_LOCOMOTION_H
-#define SIMPLE_ROVER_LOCOMOTION_H
+#pragma once
 
 #include "locomotion_mode/locomotion_mode.hpp"
 
@@ -32,5 +31,3 @@ namespace locomotion_mode {
     
   };
 }
-
-#endif
