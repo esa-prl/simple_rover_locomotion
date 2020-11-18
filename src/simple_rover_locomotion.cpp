@@ -1,7 +1,7 @@
 #include "simple_rover_locomotion/simple_rover_locomotion.hpp"
 #include "rclcpp/clock.hpp"
 
-using namespace locomotion_mode;
+namespace locomotion_mode{
 
 SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name)
 : LocomotionMode(options, node_name),
@@ -287,12 +287,13 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   return joint_command_array_msg;
 }
 
+}
 
 int main(int argc, char * argv[])
 {
   rclcpp::NodeOptions options;
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<SimpleRoverLocomotion>(options, "simple_rover_locomotion_node"));
+  rclcpp::spin(std::make_shared<locomotion_mode::SimpleRoverLocomotion>(options, "simple_rover_locomotion_node"));
   rclcpp::shutdown();
   return 0;
 }

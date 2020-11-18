@@ -4,30 +4,31 @@
 
 namespace locomotion_mode {  
 
-  class SimpleRoverLocomotion : public LocomotionMode
-  {
-  public:
-    SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name);
+class SimpleRoverLocomotion : public LocomotionMode
+{
+public:
+  SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name);
 
-  private:
-    // Position of the centre of rotation in x and y
-    double centre_of_rotation_x_;
-    double centre_of_rotation_y_;
-    // 'True' if all wheels are steerable
-    bool fully_steerable_;
+private:
+  // Position of the centre of rotation in x and y
+  double centre_of_rotation_x_;
+  double centre_of_rotation_y_;
+  // 'True' if all wheels are steerable
+  bool fully_steerable_;
 
-    // Margin in whicc the driving wheels start driving. [rad]
-    double steering_margin_;
-    bool steering_in_progress_;
+  // Margin in whicc the driving wheels start driving. [rad]
+  double steering_margin_;
+  bool steering_in_progress_;
 
-    rover_msgs::msg::JointCommandArray compute_joint_commands(
-      const geometry_msgs::msg::Twist::SharedPtr msg);
+  rover_msgs::msg::JointCommandArray compute_joint_commands(
+    const geometry_msgs::msg::Twist::SharedPtr msg);
 
-    // Checks if all wheels are steerable. At most, two wheels can be non steerable, otherwise it fails.
-    bool check_steering_limitations();
+  // Checks if all wheels are steerable. At most, two wheels can be non steerable, otherwise it fails.
+  bool check_steering_limitations();
 
-    // Uncomment for enable overwrite example
-    // bool enabling_sequence();
-    
-  };
+  // Uncomment for enable overwrite example
+  // bool enabling_sequence();
+  
+};
+
 }
