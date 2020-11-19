@@ -7,7 +7,6 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 : LocomotionMode(options, node_name),
 // Assuming all rovers are limited except if they show to be unlimited.
   fully_steerable_(false),
-  // TODO: Load Steering Margin from Config
   steering_margin_(360 * M_PI / 180),
   steering_in_progress_(false)
 {
@@ -50,7 +49,6 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   {
     RCLCPP_WARN(this->get_logger(), "Number of non steerable wheels: %u", non_steerable_legs.size());
     // In case there are multiple fixed wheels their axes must align
-    // TODO: Check in which direction the wheels point in their 0 position and apply that to the input limitation etc.
     // Check if their axes align with a margin of 1 cm
     if (abs(
         non_steerable_legs[0]->driving_motor->global_pose.position.x -
@@ -232,7 +230,6 @@ bool SimpleRoverLocomotion::check_steering_limitations()
       }
       else {
         // Compute Driving Speed
-        // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
         phi_dot =
           (sin(alpha + beta) * x_dot - cos(alpha + beta) * y_dot - l * cos(beta) * theta_dot) / r;
 
