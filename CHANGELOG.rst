@@ -6,9 +6,11 @@ TODO
 ----
 * go through TODO's in code
 * potentially introduce mode_name
+* send velocities=0 to steering motors
 
 NICE TO HAVE
 ------------
+* Steering angle correctin procedure could be simplified by moving step 5 before 4.
 
 KNOWN BUGS
 ----------

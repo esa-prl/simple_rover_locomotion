@@ -160,7 +160,6 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     // RCLCPP_INFO(this->get_logger(), "Current Steering for %s: %f [rad]", leg->steering_motor->joint->name.c_str(), beta_current);
 
     if (stop_rover) {
-      beta_steer = beta_current;
       phi_dot = 0.0;
     }
     else {
@@ -205,8 +204,8 @@ bool SimpleRoverLocomotion::check_steering_limitations()
         }
 
         // Check if there are multiple ways to arrange wheels
-        if ( (beta_steer < upper_position_limit && beta_steer > lower_position_limit + M_PI) ||
-          (beta_steer > lower_position_limit && beta_steer < upper_position_limit - M_PI))
+        if ( (beta_steer - M_PI > lower_position_limit) ||
+             (beta_steer + M_PI < upper_position_limit))
         {
           // Set steering angle so it's the closest to the current steering angle
           double beta_1 = beta_steer;                                 // Option one is the computed steering angle
@@ -225,13 +224,13 @@ bool SimpleRoverLocomotion::check_steering_limitations()
         if (abs(beta_steer - beta_current) > steering_margin_) {
             steering_in_progress_ = true;
         }
-
       }
 
       // No need to compute the driving velocity if steering is in progress
       if (steering_in_progress_) {
         phi_dot = 0.0;
-      } else {
+      }
+      else {
         // Compute Driving Speed
         // TODO: Compute the wheel speeds from the current wheel orientations and not the set wheel orientations.
         phi_dot =
@@ -245,12 +244,18 @@ bool SimpleRoverLocomotion::check_steering_limitations()
 
     // Only compute steering message if leg is steerable
     if (leg->steering_motor->joint) {
-
       // Fill Steering Message
       joint_commmad_msg.header.stamp = clock->now();
       joint_commmad_msg.name = leg->steering_motor->joint->name;
-      joint_commmad_msg.mode = ("POSITION");
-      joint_commmad_msg.value = beta_steer;
+
+      if (stop_rover) {
+        joint_commmad_msg.mode = ("VELOCITY");
+        joint_commmad_msg.value = 0;
+      }
+      else {
+        joint_commmad_msg.mode = ("POSITION");
+        joint_commmad_msg.value = beta_steer;
+      }
 
       joint_command_array_msg.joint_command_array.push_back(joint_commmad_msg);
     }
@@ -259,7 +264,12 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     joint_commmad_msg.header.stamp = clock->now();
     joint_commmad_msg.name = leg->driving_motor->joint->name;
     joint_commmad_msg.mode = ("VELOCITY");
-    joint_commmad_msg.value = phi_dot;
+    if (stop_rover) {
+      joint_commmad_msg.value = 0;
+    }
+    else {
+      joint_commmad_msg.value = phi_dot;
+    }
 
     driving_command_array_msg.joint_command_array.push_back(joint_commmad_msg);
 
