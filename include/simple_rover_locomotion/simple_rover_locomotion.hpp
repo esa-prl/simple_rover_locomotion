@@ -10,9 +10,9 @@ public:
   SimpleRoverLocomotion(rclcpp::NodeOptions options, std::string node_name);
 
 private:
-  // Position of the centre of rotation in x and y
-  double centre_of_rotation_x_;
-  double centre_of_rotation_y_;
+  // Offset of origin x and y
+  double origin_offset_x_;
+  double origin_offset_y_;
   // 'True' if all wheels are steerable
   bool fully_steerable_;
 

@@ -31,19 +31,19 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     }
   }
 
-  // Checks how many legs are non steerable and sets the centre of rotation accortingly
+  // Checks how many legs are non steerable and offset the origin accortingly
   if (non_steerable_legs.size() == 0) {
     RCLCPP_INFO(this->get_logger(), "All wheels are steerable");
-    centre_of_rotation_x_ = 0;
-    centre_of_rotation_y_ = 0;
+    origin_offset_x_ = 0;
+    origin_offset_y_ = 0;
     // Overwrite limited limited steerability
     fully_steerable_ = true;
   }
   else if (non_steerable_legs.size() == 1)
   {
-    centre_of_rotation_x_ = non_steerable_legs[0]->driving_motor->global_pose.position.x;
+    origin_offset_x_ = non_steerable_legs[0]->driving_motor->global_pose.position.x;
     // Can be any value. 0 makes the most sense.
-    centre_of_rotation_y_ = 0;
+    origin_offset_y_ = 0;
   }
   else if (non_steerable_legs.size() == 2)
   {
@@ -58,10 +58,10 @@ bool SimpleRoverLocomotion::check_steering_limitations()
       return false;
     }
     // Since they align set the centre of rotation between them.
-    centre_of_rotation_x_ = (non_steerable_legs[0]->driving_motor->global_pose.position.x +
+    origin_offset_x_ = (non_steerable_legs[0]->driving_motor->global_pose.position.x +
       non_steerable_legs[1]->driving_motor->global_pose.position.x) / 2;
     // This should be 0 in most cases
-    centre_of_rotation_y_ = (non_steerable_legs[0]->driving_motor->global_pose.position.y +
+    origin_offset_y_ = (non_steerable_legs[0]->driving_motor->global_pose.position.y +
       non_steerable_legs[1]->driving_motor->global_pose.position.y) / 2;
   }
   else {
@@ -150,8 +150,8 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     }
 
     // Compute position of wheel center in respect to the center of rotation.
-    double offset_str_position_x = leg->driving_motor->global_pose.position.x - centre_of_rotation_x_;
-    double offset_str_position_y = leg->driving_motor->global_pose.position.y - centre_of_rotation_y_;
+    double offset_str_position_x = leg->driving_motor->global_pose.position.x - origin_offset_x_;
+    double offset_str_position_y = leg->driving_motor->global_pose.position.y - origin_offset_y_;
 
     bool flip_velocity = false;
 
