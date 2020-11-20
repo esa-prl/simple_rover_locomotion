@@ -7,7 +7,7 @@ SimpleRoverLocomotion::SimpleRoverLocomotion(rclcpp::NodeOptions options, std::s
 : LocomotionMode(options, node_name),
 // Assuming all rovers are limited except if they show to be unlimited.
   fully_steerable_(false),
-  steering_margin_(360 * M_PI / 180),
+  steering_margin_(30 * M_PI / 180),
   steering_in_progress_(false)
 {
   if (!check_steering_limitations()) {
@@ -25,7 +25,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   // Finds the non_steerable legs and saves them.
   for (auto leg : rover_->legs_) {
     // Check if steering motor joint is populated
-    if (!leg->steering_motor->joint)
+    if (!leg->is_steerable())
     {
       non_steerable_legs.push_back(leg);
     }
@@ -138,7 +138,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     double lower_position_limit;
     double upper_position_limit;
 
-    if (leg->steering_motor->joint) {
+    if (leg->is_steerable()) {
       beta_current = leg->steering_motor->current_state->position;
       lower_position_limit = leg->steering_motor->joint->limits->lower;
       upper_position_limit = leg->steering_motor->joint->limits->upper;    
@@ -175,7 +175,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
         (l * theta_dot + cos(alpha) * y_dot - sin(alpha) * x_dot));
 
       // Check if leg is steerable
-      if (leg->steering_motor->joint) {
+      if (leg->is_steerable()) {
         // Shift steering angle to correct orientation depending on the wheel.
         beta_steer = beta - beta_offset;
         RCLCPP_DEBUG(this->get_logger(),"beta_steer        : %f", beta_steer*180/M_PI);
@@ -240,7 +240,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
     }
 
     // Only compute steering message if leg is steerable
-    if (leg->steering_motor->joint) {
+    if (leg->is_steerable()) {
       // Fill Steering Message
       joint_commmad_msg.header.stamp = clock->now();
       joint_commmad_msg.name = leg->steering_motor->joint->name;
