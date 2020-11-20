@@ -122,7 +122,7 @@ bool SimpleRoverLocomotion::check_steering_limitations()
   }
 
 
-  // Set the wheel steering
+  // Compute steering position and driving velocity for each leg
   for (auto leg : rover_->legs_) {
 
     double alpha;         // [rad] Angle of wheel steering center to origin

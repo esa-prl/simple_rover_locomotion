@@ -4,7 +4,7 @@
 
 This packages computes the inverse kinematics (rover_velocities to joint_commands) for a rover with 6 steerable wheels. Ackermann, crabbing, spot turn and a combination of all these locomotion gaits are possible by simply varying the desired linear and angular velocity.
 
-The 3D robot model is simplified (assumes bogie and deployment joints to be fixed) and treated as a 2D model. Furthermore, it is assumed that the steering joint is loated vertically above the center of the wheel.
+The 3D robot model is simplified (assumes bogie and deployment joints to be fixed) and treated as a 2D model. Furthermore, it is assumed that the steering joint is located vertically above the center of the wheel.
 
 **Keywords:** locomotion, package, crab, ackerman, spot-turn
 
